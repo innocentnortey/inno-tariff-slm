@@ -1,0 +1,7 @@
+.env
+build/
+*.mp4
+*.srt
+*.mp3
+*.wav
+auth.json

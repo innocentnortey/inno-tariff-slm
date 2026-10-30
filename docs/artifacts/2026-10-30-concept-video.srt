@@ -1,0 +1,391 @@
+1
+00:00:00,250 --> 00:00:02,823
+It's filing week at a mid size apparel and
+
+2
+00:00:02,823 --> 00:00:06,743
+footwear importer. The classification specialist has new styles.
+
+3
+00:00:06,743 --> 00:00:09,377
+Every import needs a ten digit tariff code,
+
+4
+00:00:09,377 --> 00:00:11,827
+and the importer is legally responsible.
+
+5
+00:00:11,827 --> 00:00:15,074
+I'm proposing a human supervised analyst with a small
+
+6
+00:00:15,074 --> 00:00:17,340
+model. No model has been trained yet.
+
+7
+00:00:18,198 --> 00:00:21,975
+There are nineteen thousand nine hundred forty nine ten
+
+8
+00:00:21,975 --> 00:00:25,751
+digit lines. Small details decide the last four digits.
+
+9
+00:00:25,751 --> 00:00:28,979
+A scarf with at least seventy percent silk gets
+
+10
+00:00:28,979 --> 00:00:30,833
+one point two percent duty,
+
+11
+00:00:30,833 --> 00:00:33,510
+versus three point nine for other silk.
+
+12
+00:00:33,510 --> 00:00:35,982
+G P T five Thinking got a quarter of
+
+13
+00:00:35,982 --> 00:00:39,278
+full codes right on two hundred rulings in Atlas
+
+14
+00:00:39,278 --> 00:00:42,643
+twenty twenty five. A wrong code means wrong duty
+
+15
+00:00:42,643 --> 00:00:43,879
+on every shipment.
+
+16
+00:00:44,732 --> 00:00:47,354
+My proposed workflow reads documents,
+
+17
+00:00:47,354 --> 00:00:51,536
+extracts product details, and retrieves codes and past U.S.
+
+18
+00:00:51,536 --> 00:00:55,221
+Customs rulings. The specialist would choose or ask,
+
+19
+00:00:55,221 --> 00:00:57,064
+code would calculate duty,
+
+20
+00:00:57,064 --> 00:00:59,615
+and a licensed person would approve.
+
+21
+00:00:59,615 --> 00:01:02,379
+It would never make a binding decision.
+
+22
+00:01:03,238 --> 00:01:06,539
+Here, the mock follows a real women's knit shrug
+
+23
+00:01:06,539 --> 00:01:10,458
+from China, ninety four percent polyester and six percent
+
+24
+00:01:10,458 --> 00:01:14,515
+elastane. It shows the extracted details beside eight close
+
+25
+00:01:14,515 --> 00:01:17,404
+codes, all at fourteen point nine percent.
+
+26
+00:01:17,404 --> 00:01:20,154
+The products, codes, and rates are real.
+
+27
+00:01:20,154 --> 00:01:22,836
+The analyst's outputs are hand written.
+
+28
+00:01:23,699 --> 00:01:26,866
+The closest pair differs only on who wears it.
+
+29
+00:01:26,866 --> 00:01:28,863
+The description says Woman's,
+
+30
+00:01:28,863 --> 00:01:32,168
+so my example chooses the women's line and names
+
+31
+00:01:32,168 --> 00:01:34,095
+that clue and the runner up.
+
+32
+00:01:34,095 --> 00:01:36,230
+That choice is written by hand,
+
+33
+00:01:36,230 --> 00:01:37,538
+not a model result.
+
+34
+00:01:38,390 --> 00:01:41,356
+But the shoe description leaves out who wears it.
+
+35
+00:01:41,356 --> 00:01:43,777
+The two best lines say for women and for
+
+36
+00:01:43,777 --> 00:01:45,411
+men. Here I want need info,
+
+37
+00:01:45,411 --> 00:01:47,893
+followed by one question to the supplier.
+
+38
+00:01:47,893 --> 00:01:50,920
+Asking for the missing fact instead of guessing is
+
+39
+00:01:50,920 --> 00:01:52,554
+the difference I'm testing.
+
+40
+00:01:53,411 --> 00:01:57,007
+For the shrug, plain code would calculate duty using
+
+41
+00:01:57,007 --> 00:01:58,943
+invented value and quantity.
+
+42
+00:01:58,943 --> 00:02:02,124
+The ruling also notes an extra China duty that
+
+43
+00:02:02,124 --> 00:02:04,061
+a duty service must look up.
+
+44
+00:02:04,061 --> 00:02:05,789
+A reviewer could approve,
+
+45
+00:02:05,789 --> 00:02:08,071
+edit, or escalate, with evidence.
+
+46
+00:02:08,071 --> 00:02:09,247
+A person decides.
+
+47
+00:02:10,105 --> 00:02:12,189
+I'd train one narrow behavior.
+
+48
+00:02:12,189 --> 00:02:15,037
+Given a description and eight candidates,
+
+49
+00:02:15,037 --> 00:02:17,885
+choose one and quote the deciding detail,
+
+50
+00:02:17,885 --> 00:02:20,733
+or say need info and name what's missing.
+
+51
+00:02:20,733 --> 00:02:22,678
+Never cite an unstated fact.
+
+52
+00:02:22,678 --> 00:02:26,706
+Retrieval supplies facts. I suspect past rulings can teach
+
+53
+00:02:26,706 --> 00:02:30,735
+this pattern. Atlas fine tuned a seventy billion parameter
+
+54
+00:02:30,735 --> 00:02:33,791
+model from about two to forty percent at ten
+
+55
+00:02:33,791 --> 00:02:37,473
+digits. Whether one to four billion parameters can do
+
+56
+00:02:37,473 --> 00:02:38,932
+it, with cost, speed,
+
+57
+00:02:38,932 --> 00:02:41,293
+privacy, and consistency benefits,
+
+58
+00:02:41,293 --> 00:02:42,752
+remains a hypothesis.
+
+59
+00:02:43,609 --> 00:02:47,229
+U.S. Customs publishes binding rulings with its own labels.
+
+60
+00:02:47,229 --> 00:02:50,543
+The starting pool has nine thousand five hundred sixty
+
+61
+00:02:50,543 --> 00:02:52,568
+six apparel and footwear rulings.
+
+62
+00:02:52,568 --> 00:02:54,347
+My plan drops obsolete codes,
+
+63
+00:02:54,347 --> 00:02:56,372
+trains through twenty twenty two,
+
+64
+00:02:56,372 --> 00:02:59,625
+and tests on twenty twenty four through twenty twenty
+
+65
+00:02:59,625 --> 00:03:03,184
+five. Deciding details would come from where sibling codes
+
+66
+00:03:03,184 --> 00:03:04,963
+first differ in the schedule.
+
+67
+00:03:04,963 --> 00:03:07,417
+Removing details would create ask cases,
+
+68
+00:03:07,417 --> 00:03:09,197
+without teacher model labels.
+
+69
+00:03:10,050 --> 00:03:12,609
+Each part would own one kind of decision.
+
+70
+00:03:12,609 --> 00:03:14,607
+Language models handle language,
+
+71
+00:03:14,607 --> 00:03:16,729
+code handles rules and arithmetic,
+
+72
+00:03:16,729 --> 00:03:18,789
+and a person owns the final call.
+
+73
+00:03:18,789 --> 00:03:21,660
+The specialist must stay within its code list.
+
+74
+00:03:21,660 --> 00:03:23,533
+No model touches duty numbers.
+
+75
+00:03:23,533 --> 00:03:25,468
+Effective dates, origin duties,
+
+76
+00:03:25,468 --> 00:03:27,465
+and old rulings still need work.
+
+77
+00:03:28,317 --> 00:03:32,021
+I'd compare every model on the same eight candidates.
+
+78
+00:03:32,021 --> 00:03:34,956
+My first test spans two frontier families,
+
+79
+00:03:34,956 --> 00:03:38,799
+three prompting styles, and over thirty scenarios each.
+
+80
+00:03:38,799 --> 00:03:42,154
+It hasn't run. The tuned model's proposed bar is
+
+81
+00:03:42,154 --> 00:03:45,368
+a twenty point gain over its base in following
+
+82
+00:03:45,368 --> 00:03:47,395
+the spec on held out rulings,
+
+83
+00:03:47,395 --> 00:03:51,169
+with at least seventy percent recall for missing facts
+
+84
+00:03:51,169 --> 00:03:54,174
+and at most ten percent needless questions.
+
+85
+00:03:54,174 --> 00:03:55,781
+If prompting solves it,
+
+86
+00:03:55,781 --> 00:03:57,528
+I'll narrow the behavior.
+
+87
+00:03:58,379 --> 00:04:00,152
+Only rule baselines have run,
+
+88
+00:04:00,152 --> 00:04:03,149
+with attribute rules at about twenty one percent.
+
+89
+00:04:03,149 --> 00:04:04,923
+Business value is unmeasured.
+
+90
+00:04:04,923 --> 00:04:08,042
+This package does not yet meet the early submission
+
+91
+00:04:08,042 --> 00:04:10,793
+evidence requirements. It sets the direction.
+
+92
+00:04:10,793 --> 00:04:13,301
+Across nine stages, next comes prompting,
+
+93
+00:04:13,301 --> 00:04:15,197
+then data, the first fine tune,
+
+94
+00:04:15,197 --> 00:04:16,909
+and a four point data curve.
+
+95
+00:04:17,765 --> 00:04:21,107
+My goal is a small specialist that chooses between
+
+96
+00:04:21,107 --> 00:04:22,912
+close tariff codes or asks,
+
+97
+00:04:22,912 --> 00:04:24,717
+with human oversight. Next,
+
+98
+00:04:24,717 --> 00:04:26,589
+I'll run the prompting test.

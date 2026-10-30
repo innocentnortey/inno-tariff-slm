@@ -1,0 +1,198 @@
+project: "Tariff Specialist SLM concept"
+tagline: "A small trained model that chooses between close tariff codes, or asks"
+url: http://127.0.0.1:8811/tariff-compliance-vision.html
+dev:
+  command: 'python3 -m http.server 8811 --bind 127.0.0.1 --directory "../Gauntlet AI/docs/research"'
+  url: http://127.0.0.1:8811/tariff-compliance-vision.html
+  ready_timeout: 30
+viewport: {width: 1600, height: 820}
+show_requirement: false
+caption_band:
+  height: 80
+  background: "#0f1418"
+  label: "Concept stage · nothing trained yet"
+voice:
+  model: eleven_multilingual_v2
+  speed: 0.9
+  stability: 0.45
+  similarity_boost: 0.8
+  style: 0.2
+card_theme: {background: "#0f1418", accent: "#5fc2b6"}
+
+scenes:
+  - id: intro
+    type: card
+    title: "An AI trade-compliance analyst that knows when to ask"
+    subtitle: "Gauntlet AI · Week 7 · Train Your Own Small Language Model · concept stage"
+    lines: ["A small fine-tuned model chooses between close tariff codes, or asks for the missing fact", "Nothing is trained yet: this is the plan and the evidence behind it"]
+    narration: "@@intro"
+
+  - id: problem
+    evidence: ["../Gauntlet AI/docs/planning/tariff-project-prd.md"]
+    before:
+      - goto: /tariff-compliance-vision.html
+      - eval: "document.documentElement.style.scrollBehavior = 'auto'; document.getElementById('present').click(); document.getElementById('problem').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: "@@problem"
+    actions:
+      - wait: 3
+      - scroll: '#problem .ladder'
+      - at: 0.4F
+      - highlight: {selector: '#problem .split', seconds: 3}
+      - at: 0.72F
+      - scroll: '#problem .grid.g3'
+      - highlight: {selector: '#problem .grid.g3 .card:nth-child(3)', seconds: 3}
+
+  - id: vision
+    evidence: ["../Gauntlet AI/docs/planning/tariff-project-prd.md"]
+    before:
+      - eval: "document.getElementById('vision').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: "@@vision"
+    actions:
+      - wait: 4
+      - scroll: {y: 300}
+
+  - id: journey_attributes
+    evidence: ["../Gauntlet AI/docs/research/tariff-compliance-vision.html", "docs/data/README.md"]
+    before:
+      - eval: "document.querySelectorAll('#scen button')[0].click(); document.querySelectorAll('#steps button')[0].click(); document.getElementById('journey').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: "@@journey_attributes"
+    actions:
+      - wait: 2.5
+      - scroll: '#steps'
+      - at: 0.3F
+      - click: '#steps button >> nth=1'
+      - at: 0.62F
+      - click: '#steps button >> nth=2'
+      - wait: 1
+      - scroll: {y: 220}
+
+  - id: journey_decision
+    evidence: ["../Gauntlet AI/docs/planning/tariff-behavior-and-evals.md"]
+    before:
+      - eval: "document.getElementById('steps').scrollIntoView({block: 'start'}); window.scrollBy(0, -90)"
+    narration: "@@journey_decision"
+    actions:
+      - click: '#steps button >> nth=3'
+      - wait: 1.5
+      - highlight: {selector: '#panel pre.json', seconds: 3}
+      - at: 0.55F
+      - highlight: {selector: '#panel .cand.gold', seconds: 3}
+
+  - id: journey_ask
+    evidence: ["../Gauntlet AI/docs/planning/tariff-behavior-and-evals.md"]
+    before:
+      - eval: "document.getElementById('steps').scrollIntoView({block: 'start'}); window.scrollBy(0, -90)"
+    narration: "@@journey_ask"
+    actions:
+      - click: '#scen button >> nth=1'
+      - wait: 0.8
+      - click: '#steps button >> nth=3'
+      - wait: 1.5
+      - highlight: {selector: '#panel pre.json', seconds: 2.5}
+      - at: 0.6F
+      - highlight: {selector: '#panel blockquote', seconds: 3.5}
+
+  - id: journey_review
+    evidence: ["../Gauntlet AI/docs/planning/tariff-architecture.md"]
+    before:
+      - eval: "document.getElementById('steps').scrollIntoView({block: 'start'}); window.scrollBy(0, -90)"
+    narration: "@@journey_review"
+    actions:
+      - click: '#scen button >> nth=0'
+      - wait: 0.8
+      - click: '#steps button >> nth=5'
+      - wait: 1.2
+      - highlight: {selector: '#panel .calc', seconds: 3}
+      - at: 0.55F
+      - click: '#steps button >> nth=6'
+      - wait: 1.2
+      - highlight: {selector: '#panel .reco', seconds: 3}
+
+  - id: why_slm
+    evidence: ["../Gauntlet AI/docs/planning/tariff-behavior-and-evals.md"]
+    before:
+      - eval: "document.getElementById('why-slm').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: "@@why_slm"
+    actions:
+      - wait: 2.5
+      - scroll: '#why-slm .spec'
+      - highlight: {selector: '#why-slm .spec', seconds: 3.5}
+      - at: 0.42F
+      - scroll: '#why-slm .grid.g2'
+      - at: 0.62F
+      - scroll: '#why-slm .tbl'
+      - at: 0.85F
+      - scroll: '#why-slm .grid.g4'
+
+  - id: data
+    evidence: ["../Gauntlet AI/docs/planning/tariff-data-training.md", "docs/data/README.md"]
+    before:
+      - eval: "document.getElementById('data').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: "@@data"
+    actions:
+      - wait: 2
+      - scroll: '#data .tbl'
+      - at: 0.35F
+      - scroll: '#data .grid.g4'
+      - highlight: {selector: '#data .grid.g4', seconds: 3}
+      - at: 0.68F
+      - scroll: '#data .pipe'
+      - highlight: {selector: '#data .pipe', seconds: 3.5}
+
+  - id: architecture
+    evidence: ["../Gauntlet AI/docs/planning/tariff-architecture.md"]
+    before:
+      - eval: "document.getElementById('architecture').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: "@@architecture"
+    actions:
+      - wait: 1.5
+      - scroll: '#arch'
+      - at: 0.25F
+      - click: '#arch g.node[data-id="slm"]'
+      - wait: 1
+      - highlight: {selector: '#arch-detail', seconds: 3}
+      - at: 0.6F
+      - click: '#arch g.node[data-id="duty"]'
+      - wait: 1.5
+      - at: 0.8F
+      - scroll: '#architecture .grid.g2'
+      - highlight: {selector: '#architecture .grid.g2 .card:nth-child(2)', seconds: 3}
+
+  - id: evaluation
+    evidence: ["../Gauntlet AI/docs/planning/tariff-behavior-and-evals.md", "docs/data/README.md"]
+    before:
+      - eval: "document.getElementById('evaluation').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: "@@evaluation"
+    actions:
+      - wait: 2
+      - scroll: '#evaluation .ceiling'
+      - highlight: {selector: '#evaluation .ceiling', seconds: 3}
+      - at: 0.4F
+      - scroll: '#evaluation .check'
+      - highlight: {selector: '#evaluation .check', seconds: 4}
+      - at: 0.85F
+      - scroll: '#evaluation .ceiling'
+      - highlight: {selector: '#evaluation .ceiling + .note', seconds: 3}
+
+  - id: status
+    evidence: ["../Gauntlet AI/docs/planning/tariff-execution-plan.md"]
+    before:
+      - eval: "document.getElementById('evaluation').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: "@@status"
+    actions:
+      - scroll: '#bars'
+      - highlight: {selector: '#bars', seconds: 3}
+      - at: 0.3F
+      - scroll: '#status .grid.g2'
+      - highlight: {selector: '#status .grid.g2 .card:nth-child(2)', seconds: 3.5}
+      - at: 0.62F
+      - scroll: '#road'
+      - wait: 1
+      - scroll: {y: 300}
+
+  - id: outro
+    type: card
+    title: "Choose between close codes, or ask"
+    subtitle: "A small specialist inside a human-supervised trade-compliance analyst"
+    lines: ["Next: the prompt-ceiling test on the same candidates", "Repo: labs.gauntletai.com · innocentnortey · inno-tariff-slm"]
+    narration: "@@outro"
