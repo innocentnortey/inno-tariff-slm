@@ -1,6 +1,6 @@
 # Tariff Specialist SLM — concept stage
 
-**Live concept page:** _set after the Render deploy_
+**Live concept page:** https://inno-tariff-slm.onrender.com (Render static site `srv-dbi2uetg1s2s73drae0g`, auto-deploys from GitHub `main`)
 
 Gauntlet AI Week 7, *Train Your Own Small Language Model*. The proposal: a human-supervised **AI trade-compliance
 analyst** for importers and customs brokers, built around one small fine-tuned model. Given a product description and
