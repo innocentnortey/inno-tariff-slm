@@ -14,7 +14,9 @@ I have not built candidate retrieval yet. Keyword search finds the right code am
 Here is the broker's blouse. Women's short sleeve, one hundred percent cotton knit. Both models pick six one zero six, one zero, zero zero, one zero, citing women's. My tuned model also names the runner up.
 
 <!-- scene: live2 -->
-Now I remove women's. The base model still picks the women's line. It cites of cotton, words from the schedule, under the wrong kind of fact. My tuned model asks who wears it. That is the behavior I want before this broker files.
+Now I remove women's. The base model still picks the women's line. It cites of cotton, words from the schedule, under the wrong kind of fact.
+
+My tuned model asks who wears it. That is the behavior I want before this broker files.
 
 <!-- scene: case1 -->
 I also checked ballet shoes in the sealed test. Two styles, no wearer stated. The base model picks. Claude Opus five point five picks without supporting words. My specialist asks for the wearer.

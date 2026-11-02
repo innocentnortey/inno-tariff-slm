@@ -1,0 +1,399 @@
+1
+00:00:00,250 --> 00:00:01,504
+It is filing week.
+
+2
+00:00:01,504 --> 00:00:04,430
+A customs broker at a mid size apparel and
+
+3
+00:00:04,430 --> 00:00:08,400
+footwear importer gets new styles with thin descriptions.
+
+4
+00:00:08,400 --> 00:00:11,535
+One missing fact can change the duty on every
+
+5
+00:00:11,535 --> 00:00:14,879
+shipment. I built a specialist to catch that gap
+
+6
+00:00:14,879 --> 00:00:15,854
+before filing.
+
+7
+00:00:16,856 --> 00:00:19,217
+Every import needs a ten digit code.
+
+8
+00:00:19,217 --> 00:00:22,102
+I want to help this broker avoid a confident
+
+9
+00:00:22,102 --> 00:00:25,184
+wrong answer. The flow I designed starts with a
+
+10
+00:00:25,184 --> 00:00:28,856
+shortlist. My specialist picks with evidence or asks for
+
+11
+00:00:28,856 --> 00:00:32,069
+a missing fact. That becomes a supplier question.
+
+12
+00:00:32,069 --> 00:00:33,249
+A person approves.
+
+13
+00:00:34,160 --> 00:00:36,924
+I have not built candidate retrieval yet.
+
+14
+00:00:36,924 --> 00:00:40,834
+Keyword search finds the right code among eight candidates
+
+15
+00:00:40,834 --> 00:00:42,856
+only four percent of the time.
+
+16
+00:00:42,856 --> 00:00:44,878
+Here, I supply the candidates.
+
+17
+00:00:44,878 --> 00:00:46,159
+I tuned Qwen three,
+
+18
+00:00:46,159 --> 00:00:47,777
+one point seven billion,
+
+19
+00:00:47,777 --> 00:00:49,260
+using Q LoRA on Modal.
+
+20
+00:00:49,260 --> 00:00:51,282
+It returns one J S O N answer,
+
+21
+00:00:51,282 --> 00:00:52,833
+pick and quote, or ask.
+
+22
+00:00:52,833 --> 00:00:55,664
+Code checks the format and candidate code,
+
+23
+00:00:55,664 --> 00:00:59,304
+then checks that the quote appears in the description.
+
+24
+00:00:59,304 --> 00:01:02,136
+A licensed broker approves the legal call.
+
+25
+00:01:02,136 --> 00:01:04,899
+Code labels come from real C B P rulings,
+
+26
+00:01:04,899 --> 00:01:07,663
+never a model. I ran three label reviews.
+
+27
+00:01:07,663 --> 00:01:10,899
+Copies with deciding facts removed teach asking.
+
+28
+00:01:10,899 --> 00:01:14,135
+My sealed test uses two hundred twenty one cases
+
+29
+00:01:14,135 --> 00:01:17,303
+from twenty twenty four and twenty twenty five.
+
+30
+00:01:18,907 --> 00:01:20,822
+Here is the broker's blouse.
+
+31
+00:01:20,822 --> 00:01:24,515
+Women's short sleeve, one hundred percent cotton knit.
+
+32
+00:01:24,515 --> 00:01:26,840
+Both models pick six one zero six,
+
+33
+00:01:26,840 --> 00:01:28,208
+one zero, zero zero,
+
+34
+00:01:28,208 --> 00:01:29,917
+one zero, citing women's.
+
+35
+00:01:29,917 --> 00:01:32,653
+My tuned model also names the runner up.
+
+36
+00:01:33,657 --> 00:01:35,019
+Now I remove women's.
+
+37
+00:01:35,019 --> 00:01:37,872
+The base model still picks the women's line.
+
+38
+00:01:37,872 --> 00:01:39,104
+It cites of cotton,
+
+39
+00:01:39,104 --> 00:01:40,660
+words from the schedule,
+
+40
+00:01:40,660 --> 00:01:42,541
+under the wrong kind of fact.
+
+41
+00:01:42,541 --> 00:01:44,681
+My tuned model asks who wears it.
+
+42
+00:01:44,681 --> 00:01:47,664
+That is the behavior I want before this broker
+
+43
+00:01:47,664 --> 00:01:48,053
+files.
+
+44
+00:01:48,936 --> 00:01:52,382
+I also checked ballet shoes in the sealed test.
+
+45
+00:01:52,382 --> 00:01:54,509
+Two styles, no wearer stated.
+
+46
+00:01:54,509 --> 00:01:56,049
+The base model picks.
+
+47
+00:01:56,049 --> 00:02:00,375
+Claude Opus five point five picks without supporting words.
+
+48
+00:02:00,375 --> 00:02:02,868
+My specialist asks for the wearer.
+
+49
+00:02:03,743 --> 00:02:06,232
+Chest waders show the same pattern.
+
+50
+00:02:06,232 --> 00:02:09,147
+The base model calls them house slippers.
+
+51
+00:02:09,147 --> 00:02:10,427
+Opus picks a code.
+
+52
+00:02:10,427 --> 00:02:12,845
+My specialist asks who wears them.
+
+53
+00:02:13,699 --> 00:02:15,553
+I learned this through data.
+
+54
+00:02:15,553 --> 00:02:19,130
+At first, only six percent of training examples taught
+
+55
+00:02:19,130 --> 00:02:21,249
+asking. When a fact was missing,
+
+56
+00:02:21,249 --> 00:02:23,832
+it asked sixty one percent of the time.
+
+57
+00:02:23,832 --> 00:02:26,878
+Adding six hundred seventy eight ask examples,
+
+58
+00:02:26,878 --> 00:02:28,998
+with the same training settings,
+
+59
+00:02:28,998 --> 00:02:32,640
+raised that to ninety four percent on development data.
+
+60
+00:02:32,640 --> 00:02:36,548
+Rebalancing rare branches and making a second training pass
+
+61
+00:02:36,548 --> 00:02:39,992
+averaged one hundred thirty six of one hundred fifty
+
+62
+00:02:39,992 --> 00:02:43,303
+seven correct, and fifty one of fifty eight robust
+
+63
+00:02:43,303 --> 00:02:44,893
+across two random seeds.
+
+64
+00:02:44,893 --> 00:02:48,204
+Opus scored one hundred thirty five and fifty one.
+
+65
+00:02:49,117 --> 00:02:50,778
+But I still see failures.
+
+66
+00:02:50,778 --> 00:02:54,167
+On a woman's rain boot covered in leather flocking,
+
+67
+00:02:54,167 --> 00:02:56,626
+my model treats leather as the upper.
+
+68
+00:02:56,626 --> 00:02:58,420
+C B P says other materials.
+
+69
+00:02:58,420 --> 00:02:59,683
+Opus gets it right.
+
+70
+00:02:59,683 --> 00:03:02,474
+The surface rule is missing from my input.
+
+71
+00:03:02,474 --> 00:03:05,464
+Pretraining likely gives Opus that knowledge.
+
+72
+00:03:06,318 --> 00:03:07,684
+On the sealed test,
+
+73
+00:03:07,684 --> 00:03:11,422
+the overall behavior score rose from six point three
+
+74
+00:03:11,422 --> 00:03:13,435
+to eighty point one percent,
+
+75
+00:03:13,435 --> 00:03:15,592
+reproducible with one command.
+
+76
+00:03:15,592 --> 00:03:18,036
+Opus scores eighty four point six.
+
+77
+00:03:18,036 --> 00:03:20,912
+Robustness ties at seventy five percent.
+
+78
+00:03:20,912 --> 00:03:24,363
+My model asks when facts are missing eighty four
+
+79
+00:03:24,363 --> 00:03:26,879
+to eighty nine percent of the time,
+
+80
+00:03:26,879 --> 00:03:31,552
+versus seventy three. On thirteen summaries missing facts without
+
+81
+00:03:31,552 --> 00:03:35,147
+my removing them, it asks eleven times versus six.
+
+82
+00:03:35,147 --> 00:03:39,316
+These model written summaries can omit facts from original
+
+83
+00:03:39,316 --> 00:03:43,630
+rulings. Unneeded questions are one point six percent versus
+
+84
+00:03:43,630 --> 00:03:47,153
+three point three. The latest tuned results are a
+
+85
+00:03:47,153 --> 00:03:48,950
+second look at this test.
+
+86
+00:03:49,875 --> 00:03:53,571
+My plan was to beat frontier models at classification,
+
+87
+00:03:53,571 --> 00:03:55,761
+but things didn't go as planned.
+
+88
+00:03:55,761 --> 00:03:57,266
+In twenty twenty five,
+
+89
+00:03:57,266 --> 00:04:00,757
+Atlas research found a frontier model right about a
+
+90
+00:04:00,757 --> 00:04:04,042
+quarter of the time searching the full schedule.
+
+91
+00:04:04,042 --> 00:04:06,574
+I handed over eight close candidates.
+
+92
+00:04:06,574 --> 00:04:08,969
+The frontier model reads them well.
+
+93
+00:04:08,969 --> 00:04:10,749
+My specialist comes close,
+
+94
+00:04:10,749 --> 00:04:13,075
+but is not ahead at picking codes.
+
+95
+00:04:13,075 --> 00:04:15,676
+It does refuse to guess more reliably.
+
+96
+00:04:15,676 --> 00:04:19,303
+Next I would build better candidate retrieval for the
+
+97
+00:04:19,303 --> 00:04:22,383
+full search, keeping this decide or ask step.
+
+98
+00:04:23,240 --> 00:04:26,401
+I built a specialist that asks for missing facts
+
+99
+00:04:26,401 --> 00:04:29,629
+before filing. My model and dataset are public on
+
+100
+00:04:29,629 --> 00:04:30,485
+Hugging Face.
