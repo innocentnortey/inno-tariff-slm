@@ -1,17 +1,17 @@
 # Tariff specialist: execution plan
 
-Status as of 2026-10-30: **concept stage.** Implementation is paused at Innocent's instruction until the concept
-video is done. Code repo: `inno-tariff-slm` (zero-to-hero Stage 0 done; Stages 1–4 drafts in these planning docs).
+Status as of 2026-11-01: **implementation resumed** (Innocent: "we also can start working on this whole slm thing").
+The concept video is done (2026-10-30); the Step 1 label review is done. Code repo: `inno-tariff-slm` (zero-to-hero Stage 0 done; Stages 1–4 drafts in these planning docs).
 
 ## Stages (dependency order)
 
 | # | Stage | Kind | Depends on | Status |
 |---|---|---|---|---|
-| 1 | Finalize behavior and data subset; hand-review 50 labels | Mandatory | — | Started (spec and subset drafted) |
-| 2 | Build the evaluation harness (checks, judge, `eval.py`) | Mandatory | 1 | Draft code exists, not reviewed |
-| 3 | Prompt-ceiling ablation | Mandatory | 2, API keys (VPS) | Not started |
-| 4 | Construct and filter training data | Mandatory | 1 | Draft build exists |
-| 5 | Fine-tune and evaluate the first model | Mandatory | 2, 4, GPU | Not started |
+| 1 | Finalize behavior and data subset; hand-review 50 labels | Mandatory | — | Done 2026-11-01: label review (Claude, delegated; `docs/data/label-review-2026-11-01.md`); spec approved by Innocent |
+| 2 | Build the evaluation harness (checks, judge, `eval.py`) | Mandatory | 1 | Built 2026-11-01: checks, judge (uncalibrated), robustness set, parallel + resumable runs; not committed |
+| 3 | Prompt-ceiling ablation | Mandatory | 2, API keys (VPS) | Done 2026-11-01: `docs/evals/prompt-ceiling-2026-11-01.md` |
+| 4 | Construct and filter training data | Mandatory | 1 | Build revised after the label review; regression tests in `tests/test_attributes.py`; not yet committed |
+| 5 | Fine-tune and evaluate the first model | Mandatory | 2, 4, GPU | Smoke run done 2026-11-01 (Modal H100, Qwen3-1.7B QLoRA); first full run in progress |
 | 6 | Diagnose failures, fix the data (v2) | Mandatory | 5 | Not started |
 | 7 | Four-checkpoint data-efficiency curve | Mandatory | 5 | Not started |
 | 8 | Minimal agent demo around the specialist | Stretch | 5 | Not started |

@@ -16,6 +16,8 @@ This package does not yet meet Gauntlet's early-submission technical evidence re
 | Path | What it is |
 |---|---|
 | `site/index.html` | The concept page served on Render (copy of `Gauntlet AI/docs/research/tariff-compliance-vision.html`) |
+| `docs/research/README.md` | Research index, original domain research, source evidence, and SLM-versus-RAG clarification |
+| `course-material/`, `transcripts/` | Week 7 brief, slide text, and assignment walkthrough |
 | `docs/planning/` | PRD, behavior spec and evals, data and training plan, architecture, execution plan, video outline (snapshot) |
 | `docs/data/README.md` | First data-reality check: counts, splits, preliminary baselines |
 | `docs/delivery/2026-10-30-concept-narration.md` | Concept-video narration (written by Codex) |

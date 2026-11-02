@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SLM Domain Explorer</title>
+<meta name="description" content="Domain-first candidates for the Gauntlet Week 7 small-language-model project: datasets, evidence, agentic demos and scores.">
+<style>
+:root {
+  --bg: #f6f6f3; --surface: #ffffff; --surface-2: #f0f0ec; --text: #17191c; --text-2: #3d4248; --muted: #5d636a;
+  --border: #e1e1da; --border-strong: #c9c9c0; --accent: #2c55c9; --accent-soft: #e9eefb;
+  --good: #19704a; --good-soft: #e3f2ea; --warn: #8f5200; --warn-soft: #fbefd9; --bad: #a8261b; --bad-soft: #fbe9e7;
+  --radius: 10px; --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #121417; --surface: #1a1d21; --surface-2: #22262b; --text: #ecedee; --text-2: #c9ccd0; --muted: #9aa0a7;
+  --border: #2e3339; --border-strong: #3d434a; --accent: #7c9bf0; --accent-soft: #1f2a45;
+  --good: #5fc796; --good-soft: #15302a; --warn: #e7b25a; --warn-soft: #362a14; --bad: #f08a80; --bad-soft: #3a1d1b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 var(--font); }
+a { color: var(--accent); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+h1 { font-size: clamp(1.5rem, 3vw, 2rem); margin: 0 0 .4rem; letter-spacing: -.01em; }
+h2 { font-size: 1.25rem; margin: 2rem 0 .75rem; }
+h3 { font-size: 1.05rem; margin: 0 0 .5rem; }
+h4 { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 1.1rem 0 .35rem; }
+p { margin: 0 0 .6rem; }
+code, .mono { font-family: var(--mono); font-size: .86em; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+@media (max-width: 640px) { .wrap { padding: 0 16px; } }
+header.top { border-bottom: 1px solid var(--border); background: var(--surface); }
+header.top .wrap { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-top: 20px; padding-bottom: 18px; }
+.lede { color: var(--text-2); max-width: 78ch; }
+header.top .wrap > div { min-width: 0; }
+.meta, .callout, .sub, pre.io { overflow-wrap: anywhere; }
+td.cand { min-width: 240px; }
+td.cand .name { line-height: 1.3; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+.meta { color: var(--muted); font-size: .85rem; }
+button, select, input { font: inherit; color: var(--text); }
+.btn { border: 1px solid var(--border-strong); background: var(--surface); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.btn:hover { background: var(--surface-2); }
+.btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.callout { background: var(--warn-soft); border: 1px solid var(--border); border-left: 4px solid var(--warn); border-radius: var(--radius); padding: 12px 16px; margin: 18px 0 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 20px 0 12px; }
+.toolbar input[type=search] { flex: 1 1 220px; min-width: 0; padding: 7px 10px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); }
+.toolbar select { padding: 7px 8px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--border-strong); background: var(--surface); border-radius: 999px; padding: 4px 11px; font-size: .85rem; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 860px; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: var(--surface-2); white-space: nowrap; }
+th button { all: unset; cursor: pointer; }
+th button:focus-visible { outline: 2px solid var(--accent); }
+tr:last-child td { border-bottom: 0; }
+tr.row { cursor: pointer; }
+tr.row:hover td { background: var(--surface-2); }
+tr.row.selected td { background: var(--accent-soft); }
+.rank { font-weight: 700; font-variant-numeric: tabular-nums; }
+.name { font-weight: 600; }
+.sub { color: var(--muted); font-size: .85rem; }
+.score { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.dots { display: inline-flex; gap: 2px; }
+.dots i { width: 7px; height: 7px; border-radius: 2px; background: var(--border-strong); display: block; }
+.dots i.on { background: var(--accent); }
+.total { font-weight: 700; font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; font-size: .72rem; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--border-strong); color: var(--text-2); white-space: nowrap; }
+.tag.good { background: var(--good-soft); color: var(--good); border-color: transparent; }
+.tag.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.tag.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+.layout { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+.panel .head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 28px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+pre.io { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; white-space: pre-wrap; word-break: break-word; font: .84rem/1.45 var(--mono); margin: 0 0 .4rem; }
+ol.steps, ul.plain { margin: 0 0 .6rem; padding-left: 1.2rem; }
+ol.steps li, ul.plain li { margin-bottom: .25rem; }
+.ds { border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; margin-bottom: 8px; }
+.ds .t { font-weight: 600; }
+.ev { border-left: 3px solid var(--border-strong); padding: 2px 0 2px 10px; margin-bottom: 8px; }
+.ev.demonstrated { border-color: var(--good); }
+.ev.plausible { border-color: var(--warn); }
+.ev.counter { border-color: var(--bad); }
+.scoregrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+.scorecell { background: var(--surface-2); border-radius: 8px; padding: 8px 10px; font-size: .85rem; }
+.scorecell b { display: flex; justify-content: space-between; font-size: .8rem; }
+.compare { overflow-x: auto; }
+.compare table { min-width: 720px; }
+.compare td { font-size: .88rem; }
+.empty { padding: 24px; color: var(--muted); text-align: center; }
+footer { color: var(--muted); font-size: .85rem; padding: 30px 0 40px; }
+details summary { cursor: pointer; color: var(--accent); }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div>
+      <h1>SLM Domain Explorer</h1>
+      <p class="lede">Specialized domains where a fine-tuned 1B–4B model could beat prompting and retrieval, ranked for the Week 7 project. Select a row to see its datasets, evidence, agentic demo and smallest experiment.</p>
+      <p class="meta" id="meta"></p>
+    </div>
+    <button class="btn" id="theme" type="button" aria-label="Toggle dark theme">Dark</button>
+  </div>
+</header>
+<main class="wrap">
+  <div class="callout" id="caveat"></div>
+
+  <div class="toolbar" role="group" aria-label="Filters">
+    <input type="search" id="q" placeholder="Search tasks, datasets, evidence" aria-label="Search">
+    <label class="sub" for="sort">Sort by</label>
+    <select id="sort"></select>
+    <button class="btn" id="top3" type="button" aria-pressed="false">Top 3 only</button>
+    <button class="btn" id="cmpbtn" type="button" aria-pressed="false">Compare selected (0)</button>
+  </div>
+  <div class="chips" id="chips" role="group" aria-label="Industry filter"></div>
+
+  <h2 id="tbl-h">Shortlist</h2>
+  <div class="table-scroll"><table aria-labelledby="tbl-h"><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+  <p class="sub" style="margin-top:8px">Scores are 1–5 per dimension (30 max), with a reason for each in the detail panel. Use the checkboxes to compare candidates side by side.</p>
+
+  <section id="compare" class="compare" hidden></section>
+  <section id="detail" class="layout" style="margin-top:18px"></section>
+
+  <h2>Considered and set aside</h2>
+  <ul class="plain" id="rejected"></ul>
+  <footer id="foot"></footer>
+</main>
+<script id="data" type="application/json">/*__DATA__*/</script>
+<script>
+(function () {
+  const D = JSON.parse(document.getElementById('data').textContent);
+  const R = D.rubric;
+  const state = { q: '', industry: 'All', sort: 'rank', top3: false, compare: false, picked: new Set(), open: D.ideas[0].id };
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const link = (u, t) => u && /^https?:/.test(u) ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t || u)}</a>` : esc(t || '');
+
+  // Theme
+  const root = document.documentElement;
+  let theme = 'light';
+  try { theme = localStorage.getItem('slm-domain-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch (e) {}
+  const applyTheme = () => { root.dataset.theme = theme; $('theme').textContent = theme === 'dark' ? 'Light' : 'Dark'; };
+  applyTheme();
+  $('theme').onclick = () => { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(); try { localStorage.setItem('slm-domain-theme', theme); } catch (e) {} };
+
+  $('meta').textContent = `Built ${D.meta.built}. Brief: ${D.meta.brief}. Companion: ${D.meta.companion}.`;
+  $('caveat').innerHTML = D.meta.caveat;
+  $('foot').innerHTML = D.meta.footer;
+
+  // Sort options
+  const sorts = [['rank', 'Rank'], ['total', 'Total score']].concat(R.map((r) => [r.key, r.label]));
+  $('sort').innerHTML = sorts.map(([k, l]) => `<option value="${k}">${esc(l)}</option>`).join('');
+  $('sort').onchange = (e) => { state.sort = e.target.value; render(); };
+  $('q').oninput = (e) => { state.q = e.target.value.toLowerCase(); render(); };
+  $('top3').onclick = () => { state.top3 = !state.top3; $('top3').setAttribute('aria-pressed', state.top3); render(); };
+  $('cmpbtn').onclick = () => { state.compare = !state.compare; $('cmpbtn').setAttribute('aria-pressed', state.compare); render(); };
+
+  // Industry chips
+  const industries = ['All'].concat([...new Set(D.ideas.map((i) => i.industry))]);
+  $('chips').innerHTML = industries.map((x) => `<button type="button" class="chip" data-v="${esc(x)}" aria-pressed="${x === 'All'}">${esc(x)}</button>`).join('');
+  $('chips').onclick = (e) => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    state.industry = b.dataset.v;
+    [...$('chips').children].forEach((c) => c.setAttribute('aria-pressed', c.dataset.v === state.industry));
+    render();
+  };
+
+  const dots = (n) => `<span class="dots" aria-hidden="true">${[1, 2, 3, 4, 5].map((k) => `<i class="${k <= n ? 'on' : ''}"></i>`).join('')}</span>`;
+  const hay = (i) => JSON.stringify(i).toLowerCase();
+
+  function visible() {
+    let xs = D.ideas.filter((i) => (state.industry === 'All' || i.industry === state.industry) && (!state.q || hay(i).includes(state.q)) && (!state.top3 || i.rank <= 3));
+    const k = state.sort;
+    xs.sort((a, b) => k === 'rank' ? a.rank - b.rank : k === 'total' ? b.total - a.total || a.rank - b.rank : b.scores[k] - a.scores[k] || a.rank - b.rank);
+    return xs;
+  }
+
+  function renderTable(xs) {
+    $('thead').innerHTML = `<tr><th scope="col"><span class="sr-only">Compare</span></th><th scope="col">#</th><th scope="col">Candidate</th>${R.map((r) => `<th scope="col" title="${esc(r.help)}"><button type="button" data-sort="${r.key}">${esc(r.label)}</button></th>`).join('')}<th scope="col"><button type="button" data-sort="total">Total</button></th><th scope="col">Datasets</th></tr>`;
+    $('thead').querySelectorAll('[data-sort]').forEach((b) => b.onclick = () => { state.sort = b.dataset.sort; $('sort').value = state.sort; render(); });
+    if (!xs.length) { $('tbody').innerHTML = `<tr><td colspan="${R.length + 5}" class="empty">No candidates match these filters.</td></tr>`; return; }
+    $('tbody').innerHTML = xs.map((i) => `<tr class="row ${state.open === i.id ? 'selected' : ''}" data-id="${i.id}" tabindex="0" aria-label="${esc(i.name)}">
+      <td><input type="checkbox" data-pick="${i.id}" ${state.picked.has(i.id) ? 'checked' : ''} aria-label="Compare ${esc(i.name)}"></td>
+      <td class="rank">${i.rank}</td>
+      <td class="cand"><div class="name">${esc(i.name)}</div><div class="sub">${esc(i.industry)}</div></td>
+      ${R.map((r) => `<td><span class="score" title="${esc(i.score_notes[r.key])}">${dots(i.scores[r.key])} ${i.scores[r.key]}</span></td>`).join('')}
+      <td class="total">${i.total}</td>
+      <td>${i.datasets.filter((d) => !/tool/i.test(d.labels || '')).slice(0, 2).map((d) => `<div>${link(d.url, d.platform + ': ' + (d.name.split(' (')[0]))}</div>`).join('')}</td></tr>`).join('');
+    $('tbody').querySelectorAll('tr.row').forEach((tr) => {
+      tr.onclick = (e) => { if (e.target.matches('input,a')) return; state.open = tr.dataset.id; render(); $('detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+      tr.onkeydown = (e) => { if (e.key === 'Enter') tr.click(); };
+    });
+    $('tbody').querySelectorAll('[data-pick]').forEach((c) => c.onchange = () => { c.checked ? state.picked.add(c.dataset.pick) : state.picked.delete(c.dataset.pick); render(); });
+  }
+
+  function renderCompare() {
+    $('cmpbtn').textContent = `Compare selected (${state.picked.size})`;
+    const xs = D.ideas.filter((i) => state.picked.has(i.id));
+    if (!state.compare) { $('compare').hidden = true; return; }
+    $('compare').hidden = false;
+    if (xs.length < 2) { $('compare').innerHTML = `<h2>Compare</h2><p class="sub">Tick at least two candidates in the table.</p>`; return; }
+    const rows = [['Task', 'task'], ['Why frontier models struggle', 'why_hard'], ['Fine-tuning vs retrieval', 'ft_vs_rag'], ['Behavior spec', 'behavior_spec'], ['Evaluation', 'eval'], ['Biggest risks', 'risks'], ['Verdict', 'verdict']];
+    $('compare').innerHTML = `<h2>Compare</h2><div class="table-scroll"><table><thead><tr><th></th>${xs.map((i) => `<th>${esc(i.name)}</th>`).join('')}</tr></thead><tbody>
+      <tr><td><b>Total</b></td>${xs.map((i) => `<td class="total">${i.total} / 30</td>`).join('')}</tr>
+      ${R.map((r) => `<tr><td><b>${esc(r.label)}</b></td>${xs.map((i) => `<td>${dots(i.scores[r.key])} ${i.scores[r.key]}<div class="sub">${esc(i.score_notes[r.key])}</div></td>`).join('')}</tr>`).join('')}
+      ${rows.map(([l, k]) => `<tr><td><b>${l}</b></td>${xs.map((i) => `<td>${esc(i[k])}</td>`).join('')}</tr>`).join('')}
+    </tbody></table></div>`;
+  }
+
+  const lvlTag = (e) => e.level ? `<span class="tag ${e.level === 'demonstrated' ? 'good' : e.level === 'plausible' ? 'warn' : ''}">${esc(e.level)}${e.directness ? ' · ' + esc(e.directness) : ''}</span>` : '';
+  const verTag = (v) => v === false ? ' <span class="tag bad">unverified</span>' : '';
+
+  function renderDetail() {
+    const i = D.ideas.find((x) => x.id === state.open);
+    if (!i) { $('detail').innerHTML = ''; return; }
+    const ex = i.experiment;
+    $('detail').innerHTML = `<article class="panel" aria-labelledby="d-h">
+      <div class="head"><div><h3 id="d-h">#${i.rank} ${esc(i.name)}</h3><div class="sub">${esc(i.industry)} · total ${i.total} / 30</div></div></div>
+      <p style="margin-top:.6rem"><b>Verdict.</b> ${esc(i.verdict)}</p>
+      <div class="grid2">
+        <div><h4>The task</h4><p>${esc(i.task)}</p>
+          <h4>Why frontier models struggle</h4><p>${esc(i.why_hard)}</p>
+          <h4>Business value</h4><p>${esc(i.business)}</p>
+          <h4>What fine-tuning adds that retrieval can't</h4><p>${esc(i.ft_vs_rag)}</p></div>
+        <div><h4>Behavior spec (pass/fail)</h4><p>${esc(i.behavior_spec)}</p>
+          <h4>Example input</h4><pre class="io">${esc(i.example_input)}</pre>
+          <h4>Desired output</h4><pre class="io">${esc(i.example_output)}</pre><p class="sub">${esc(i.example_note)}</p></div>
+      </div>
+      <h4>Agentic demonstration</h4><ol class="steps">${i.agentic_demo.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>
+      <h4>Evaluation</h4><p>${esc(i.eval)}</p>
+      <h4>Risks</h4><p>${esc(i.risks)}</p>
+      <h4>Feasibility in about four days</h4><p>${esc(i.feasibility)}</p>
+      ${ex ? `<h4>Smallest experiment that settles it</h4><p><b>Question.</b> ${esc(ex.question)}</p><ol class="steps">${ex.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol><p><b>Go / stop.</b> ${esc(ex.go)}</p><p><b>Cost.</b> ${esc(ex.cost)}</p>` : ''}
+      <h4>Scores and reasons</h4><div class="scoregrid">${R.map((r) => `<div class="scorecell"><b><span>${esc(r.label)}</span><span>${i.scores[r.key]}/5</span></b>${esc(i.score_notes[r.key])}</div>`).join('')}</div>
+      <h4>Datasets and tools</h4>${i.datasets.map((d) => `<div class="ds"><div class="t">${link(d.url, d.name)}${d.license_verified ? ' <span class="tag good">licence checked</span>' : ' <span class="tag warn">licence not confirmed</span>'} ${d.access_gate && d.access_gate !== 'none' ? `<span class="tag bad">${esc(d.access_gate)}</span>` : ''}</div><div class="sub">${esc(d.platform)} · ${esc(d.size)}</div><div>${esc(d.labels || '')}</div><div class="sub">Licence: ${esc(d.license)}${d.notes ? ' · ' + esc(d.notes) : ''}</div></div>`).join('')}
+      <h4>Evidence of frontier weakness</h4>${(i.frontier_evidence || []).map((e) => `<div class="ev ${e.level}">${lvlTag(e)}${verTag(e.verified)} <span class="sub">${esc(e.year || '')} · ${esc(e.models_tested || '')}</span><div>${esc(e.finding)}</div><div class="sub">${link(e.url, e.source || e.url)}</div></div>`).join('') || '<p class="sub">None found.</p>'}
+      <h4>Counterevidence</h4>${(i.counterevidence || []).map((e) => `<div class="ev counter"><div>${esc(e.note)}</div><div class="sub">${link(e.url, e.source || e.url)}</div></div>`).join('') || '<p class="sub">None found.</p>'}
+      <h4>Small-model evidence</h4>${(i.small_model_evidence || []).map((e) => `<div class="ev">${verTag(e.verified)} <span class="sub">${esc(e.year || '')}</span><div>${esc(e.finding)}</div><div class="sub">${link(e.url, e.source || e.url)}</div></div>`).join('') || '<p class="sub">None found.</p>'}
+    </article>`;
+  }
+
+  $('rejected').innerHTML = D.rejected.map((r) => `<li><b>${esc(r.name)}.</b> ${esc(r.reason)}</li>`).join('');
+
+  function render() { const xs = visible(); renderTable(xs); renderCompare(); renderDetail(); }
+  render();
+})();
+</script>
+</body>
+</html>

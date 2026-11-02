@@ -1,0 +1,230 @@
+{
+  "area": "FN",
+  "candidates": [
+    {
+      "id": "fomc-stance-hawkish-dovish",
+      "name": "FOMC monetary-policy stance classifier (hawkish / dovish / neutral)",
+      "industry": "Banking and capital markets: rates trading, macro research, asset management",
+      "task": "Input: one sentence from an FOMC statement, minutes or press conference. Output: exactly one label, hawkish, dovish or neutral.",
+      "why_hard_for_llm": "Stance depends on the change relative to what markets expected, and the same word (e.g. 'increase') can be hawkish or dovish. In Shah et al. (ACL 2023, Table 5) zero-shot gpt-3.5-turbo scored combined weighted F1 0.5872, against 0.7171 for fine-tuned RoBERTa-large. That is GPT-3.5, not a 2025-26 frontier model, so the frontier gap is not yet shown.",
+      "business_value": "Rates desks, macro funds and fixed-income research use a consistent, timestamped stance score for each Fed release. Shah et al. built a daily stance measure this way and tested it against Treasury yields and stock returns.",
+      "datasets": [
+        {
+          "name": "gtfintechlab/fomc_communication (Trillion Dollar Words data)",
+          "url": "https://huggingface.co/datasets/gtfintechlab/fomc_communication",
+          "platform": "HF",
+          "size": "2,480 rows total; train 1.98k, test 496 (dataset card)",
+          "labels": "Dovish (LABEL_0), Hawkish (LABEL_1), Neutral (LABEL_2)",
+          "license": "cc-by-nc-4.0",
+          "license_verified": true,
+          "access_gate": "none",
+          "notes": "Dataset card shows no gate. The companion model gtfintechlab/FOMC-RoBERTa is gated (share-info) and CC BY-NC 4.0. Code is in github.com/gtfintechlab/fomc-hawkish-dovish (not opened). Non-commercial only."
+        }
+      ],
+      "frontier_evidence": [
+        {
+          "source": "Trillion Dollar Words: A New Financial Dataset, Task & Market Analysis (Shah, Paturi, Chava), ACL 2023",
+          "url": "https://arxiv.org/abs/2305.07972",
+          "year": 2023,
+          "models_tested": "gpt-3.5-turbo zero-shot (temperature 0, calls May 2023); RoBERTa-large/base, BERT, FinBERT, FLANG variants, LSTM, Bi-LSTM, rule-based. No GPT-4-class model.",
+          "finding": "Table 5, weighted F1. Combined: RoBERTa-large 0.7171 vs ChatGPT-3.5-Turbo zero-shot 0.5872. Speeches: 0.7169 vs 0.6446. Press conferences: 0.5517 vs 0.4869. Accuracy is not reported.",
+          "directness": "direct",
+          "level": "demonstrated",
+          "verified": true
+        }
+      ],
+      "counterevidence": [
+        {
+          "source": "Mind the Shift: Decoding Monetary Policy Stance from FOMC Statements with LLMs (Tang & Yang), arXiv 2603.14313, March 2026",
+          "url": "https://arxiv.org/abs/2603.14313",
+          "note": "On its own 2003-2025 statement set, the Shah et al. FOMC-RoBERTa baseline scored accuracy 0.4337 (F1 0.5346), below a dictionary baseline (0.4458 accuracy). Prompted open LLMs did better: Qwen3-4B LLM-judge accuracy 0.6386. This suggests the supervised model does not transfer to newer text, and that the prompting gap may have closed. Backbones were open 1B-14B, not frontier. Verified from the HTML Table 1."
+        }
+      ],
+      "small_model_evidence": [
+        {
+          "source": "Trillion Dollar Words (Shah et al.), ACL 2023",
+          "url": "https://arxiv.org/abs/2305.07972",
+          "year": 2023,
+          "finding": "Fine-tuned RoBERTa-large (about 355M parameters) reached combined F1 0.7171, above zero-shot GPT-3.5-Turbo at 0.5872. This is the only small-vs-LLM result on this task that I read in full.",
+          "verified": true
+        }
+      ],
+      "why_ft_beats_rag": "The label is the authors' coding convention for what counts as hawkish, not a fact stored in any document. Retrieval can fetch the statement, but it cannot teach the mapping from wording to stance.",
+      "example_input": "[Illustrative, not a dataset row] 'The Committee decided to lower the target range by 50 basis points and signalled further reductions.'",
+      "example_output": "dovish",
+      "behavior_spec": "Given one FOMC sentence, output exactly one of hawkish, dovish, neutral. Pass when the label matches gold on the held-out split. Pre-register a macro-F1 target above the zero-shot frontier run on the same split, and set the bar with a post-2023 test set.",
+      "agentic_demo": "1) Watch the Fed calendar and fetch each statement, minutes or transcript from federalreserve.gov. 2) Split into sentences. 3) The SLM labels each sentence and returns a span ID. 4) Aggregate a daily stance score. 5) Call the FRED API for CPI, PPI and 2-year Treasury yields and compute the change around each release. 6) Write rows to a research ledger with sentence IDs. 7) A frontier model drafts the note, citing only sentence IDs the SLM labelled.",
+      "eval": "Macro-F1 and accuracy against gold on the 496-row test split. Run the base model, the tuned SLM and a frontier model zero-shot and few-shot on identical prompts and sentences. Add a new hand-labelled post-2023 set, because drift is the main risk.",
+      "risks": "Non-commercial licence and a gated model. Test set is small (496). The 2023 frontier number is GPT-3.5 only. Supervised models may not transfer to recent statements (Tang & Yang 2026).",
+      "qlora_feasibility": "Fits 4 days. About 2,500 labelled sentences, three classes, and the split is already published. QLoRA on Qwen3-1.7B or 4B fits a 24 GB card in hours. Main effort is hand-labelling a post-2023 test set (a few hours)."
+    },
+    {
+      "id": "maud-merger-deal-points",
+      "name": "Merger-agreement deal-point extraction (MAUD)",
+      "industry": "Investment banking M&A advisory, private equity, legal ops at banks",
+      "task": "Input: a merger-agreement section plus one ABA deal-point question. Output: the answer option the clause supports, scored against expert annotation.",
+      "why_hard_for_llm": "Deal terms are scattered across long agreements, and small drafting changes flip the answer. The only GPT-4 figure I found is a secondary summary of LegalBench, 47.8% average balanced accuracy across MAUD tasks. I did not read the LegalBench table, so the figure is unverified.",
+      "business_value": "Deal teams at banks and PE funds review many agreements to compare terms such as fiduciary outs and material-adverse-effect carve-outs. A first-pass extractor cuts associate hours and gives a clause-cited deal-point table.",
+      "datasets": [
+        {
+          "name": "MAUD (Merger Agreement Understanding Dataset), Atticus Project",
+          "url": "https://arxiv.org/abs/2301.00876",
+          "platform": "GitHub",
+          "size": "152 public merger agreements; 92 ABA deal-point questions (144 after casting multi-label questions as binary); over 39,000 examples and over 47,000 annotations (paper)",
+          "labels": "Expert annotations of deal-point answers per question, built from the 2021 ABA Public Target Deal Points Study",
+          "license": "CC BY 4.0 (stated in the paper text)",
+          "license_verified": true,
+          "access_gate": "none",
+          "notes": "Code and data at github.com/TheAtticusProject/maud (not opened). Venue is EMNLP 2023, not NeurIPS as the brief lead said."
+        }
+      ],
+      "frontier_evidence": [
+        {
+          "source": "MAUD: An Expert-Annotated Legal NLP Dataset for Merger Agreement Understanding (Wang et al.), EMNLP 2023",
+          "url": "https://arxiv.org/abs/2301.00876",
+          "year": 2023,
+          "models_tested": "Fine-tuned RoBERTa, LegalBERT, DeBERTa, BigBird (encoders). The paper reports no GPT or Claude numbers.",
+          "finding": "Multi-task micro F1 / macro F1: RoBERTa 74.8% / 53.3%; LegalBERT 76.1% / 59.7%; DeBERTa 72.8% / 57.3%. Authors say the models are well above random on most questions but leave room on a large subset.",
+          "directness": "analogous",
+          "level": "plausible",
+          "verified": true
+        },
+        {
+          "source": "LegalBench (Guha et al.), arXiv 2308.11462, via a secondary summary",
+          "url": "https://arxiv.org/pdf/2308.11462",
+          "year": 2023,
+          "models_tested": "GPT-4 (per summary)",
+          "finding": "A secondary wiki summary reports GPT-4 averaging 47.8% balanced accuracy on MAUD-derived tasks. Not checked against the LegalBench results table.",
+          "directness": "direct",
+          "level": "hypothetical",
+          "verified": false
+        }
+      ],
+      "counterevidence": [
+        {
+          "source": "A Few Good Clauses: Comparing LLMs vs Domain-Trained Small Language Models on Structured Contract Extraction (Onit AI Labs), arXiv 2605.05532, May 2026",
+          "url": "https://arxiv.org/html/2605.05532",
+          "note": "On structured extraction from SEC exhibit contracts (not MAUD, 26 fields), frontier models zero-shot scored micro F1 Gemini 3.1 Pro Preview 0.820, Claude Opus 4.6 0.817, GPT-5.4 0.779. The fine-tuned domain model scored 0.842. The margin is 0.022 micro F1, with no significance tests. The labelled eval set is not released, and the model size is not stated. Vendor-authored."
+        }
+      ],
+      "small_model_evidence": [
+        {
+          "source": "MAUD (Wang et al.), EMNLP 2023",
+          "url": "https://arxiv.org/abs/2301.00876",
+          "year": 2023,
+          "finding": "Fine-tuned encoders give macro F1 53-60%. This shows the task is learnable, but I found no small-vs-frontier comparison on MAUD, so this does not show a small model beating a frontier model.",
+          "verified": true
+        }
+      ],
+      "why_ft_beats_rag": "The answer set follows the ABA study's fixed taxonomy. Retrieval can locate the relevant clause, but the model still has to map the wording onto that taxonomy in the same way the annotators did.",
+      "example_input": "[Illustrative, not a MAUD row] No-solicitation section text, plus the question: does the target board have a fiduciary-out right?",
+      "example_output": "[Illustrative] The option the annotation scheme assigns to that clause, with its span.",
+      "behavior_spec": "Given one agreement section and one deal-point question, output the single option the gold annotation assigns. Pass when it matches on held-out contracts (not held-out questions), reported per question with micro and macro F1.",
+      "agentic_demo": "1) Find the merger agreement exhibit through the EDGAR full-text search or the 8-K index API. 2) Split it into sections by heading. 3) The SLM answers each deal-point question with a clause span. 4) Write rows to a deal-term tracker with the span and filing URL. 5) Send low-confidence rows to an associate's review queue. 6) A frontier model drafts the summary from the verified rows only.",
+      "eval": "Micro and macro F1 per question on held-out contracts. Run the base SLM, the tuned SLM and frontier models zero-shot on the same section-question pairs. Include the LegalBench balanced-accuracy metric so results are comparable.",
+      "risks": "Legal reading comprehension more than finance proper, though M&A is a capital-markets task. Only 152 contracts, and the labels come from a 2021 study. The 2026 counterevidence shows the small-model margin is thin. Long documents need chunking.",
+      "qlora_feasibility": "Fits 4 days for fine-tuning, but data prep is harder than FOMC: align annotation spans to agreement text, chunk long sections, and split by contract. Budget 1-2 days for prep."
+    },
+    {
+      "id": "tcfd-climate-disclosure-classification",
+      "name": "TCFD pillar classification of corporate climate disclosures",
+      "industry": "Asset management (stewardship, ESG research), bank sustainability and climate-risk reporting",
+      "task": "Input: one paragraph from a corporate or sustainability report. Output: one of none, metrics, strategy, risk, governance (the TCFD pillars).",
+      "why_hard_for_llm": "Pillar assignment depends on disclosure intent, not keywords. In a 2026 study (arXiv 2607.17952), prompted LLMs with definitions reached in-source macro-F1 0.657 (GPT-5-mini) against 0.710 for a supervised ClimateBERT-TCFD model. On cross-source data, GPT-4o with definitions beat it (0.707 vs 0.648), so the weakness depends on the source.",
+      "business_value": "ESG analysts and lenders need per-company TCFD coverage matrices across many reports. A reliable tagger turns that into a cited gap analysis in hours, not weeks.",
+      "datasets": [
+        {
+          "name": "climatebert/tcfd_recommendations",
+          "url": "https://huggingface.co/datasets/climatebert/tcfd_recommendations",
+          "platform": "HF",
+          "size": "1,300 train, 400 test (dataset card; no dev split)",
+          "labels": "5 classes: none (0), metrics (1), strategy (2), risk (3), governance (4)",
+          "license": "cc-by-nc-sa-4.0",
+          "license_verified": true,
+          "access_gate": "none",
+          "notes": "Non-commercial, share-alike. Source paragraphs are from annual and sustainability reports of mainly large listed companies. The companion model card (apache-2.0) reports no F1 or accuracy, so no fine-tuned score on this test set is verified."
+        }
+      ],
+      "frontier_evidence": [
+        {
+          "source": "What Transfers Under Source Shift? Definitions, Examples, and Fine-Tuning for Climate Disclosure Classification, arXiv 2607.17952 (submitted Sep 2026)",
+          "url": "https://arxiv.org/html/2607.17952",
+          "year": 2026,
+          "models_tested": "Prompted: GPT-4o, GPT-5-mini, Qwen2.5-7B to 32B, Qwen3 and 3.5 family, Llama-3.1-8B, Llama-3.3-70B, Llama-4-Scout, Ministral-8B. Supervised: ClimateBERT-TCFD. Claude and GPT-5 are not tested.",
+          "finding": "Macro-F1, Appendix K. In-source (TCFD-CR, n=320): ClimateBERT 0.710 vs best definitions prompt 0.657 (GPT-5-mini). Cross-source (TCFD-EX, n=593): ClimateBERT 0.648 vs best definitions prompt 0.707 (GPT-4o).",
+          "directness": "partial",
+          "level": "demonstrated",
+          "verified": true
+        },
+        {
+          "source": "Climate-Eval: A Comprehensive Benchmark for NLP Tasks Related to Climate Change, arXiv 2505.18653",
+          "url": "https://arxiv.org/html/2505.18653",
+          "year": 2025,
+          "models_tested": "Gemma-2 2B, Qwen-2.5 7B, Llama-2 7B/13B, ClimateGPT 7B/13B, Llama-3.1 8B, Mistral 24B (4-bit), Llama-3.3 70B (4-bit); 0-shot and 5-shot. No frontier API models.",
+          "finding": "TCFD F1-macro, 5-shot: Llama-3.3 70B 0.48; Mistral 24B 0.52; Llama-3.1 8B 0.45. Column mapping was inferred from a garbled table, but its averages match the paper. No fine-tuned baseline on this set is reported.",
+          "directness": "direct",
+          "level": "demonstrated",
+          "verified": true
+        }
+      ],
+      "counterevidence": [
+        {
+          "source": "arXiv 2607.17952 (above)",
+          "url": "https://arxiv.org/html/2607.17952",
+          "note": "Prompted GPT-4o with definitions beat supervised ClimateBERT under source shift (0.707 vs 0.648). Random few-shot (k=8) scored 0.705 cross-source. Retrieval and LoRA advantages shrank under shift. Only one dataset pair was tested."
+        }
+      ],
+      "small_model_evidence": [
+        {
+          "source": "arXiv 2607.17952 (above)",
+          "url": "https://arxiv.org/html/2607.17952",
+          "year": 2026,
+          "finding": "LoRA-tuned Llama-3.1-8B (8B, at the limit of the brief) scored macro-F1 0.733 in-source, against 0.710 for supervised ClimateBERT. Cross-source it scored 0.666 against 0.648. LoRA on Qwen3-32B was not a small model and is not counted here.",
+          "verified": true
+        }
+      ],
+      "why_ft_beats_rag": "The pillars are a convention about what a disclosure is for. Retrieving similar paragraphs helped in-source but lost most of that advantage under source shift (2607.17952), so retrieval is not the fix.",
+      "example_input": "[Illustrative, not a dataset row] 'The Board's Audit Committee reviews climate-related risks each quarter and receives management updates.'",
+      "example_output": "governance",
+      "behavior_spec": "Given one paragraph from a corporate report, output exactly one of none, metrics, strategy, risk, governance. Pass when it matches gold on the 400-row test set with macro-F1 at or above the ClimateBERT-TCFD baseline, and also on a cross-source set.",
+      "agentic_demo": "1) Fetch 10-K or sustainability report text from EDGAR or the company IR site. 2) Split into paragraphs and drop boilerplate. 3) The SLM tags each paragraph with a pillar and a confidence. 4) Build a per-company TCFD coverage matrix. 5) Write the matrix to the analyst's tracker with paragraph IDs. 6) Flag empty pillars for an analyst call.",
+      "eval": "Macro-F1 and per-class F1 on the 400-row test set. Add a cross-source set (the 2026 paper's TCFD-EX, if obtainable). Compare base, tuned and prompted frontier models on the same paragraphs, using the same definitions prompt.",
+      "risks": "Non-commercial, share-alike licence. The test set is small (400), so rare classes give noisy F1. Labels come from large listed companies only. The strongest small-model result is from a single 2026 preprint.",
+      "qlora_feasibility": "Fits 4 days easily. About 1,300 labelled train paragraphs. Data prep is minimal. Main effort is building a cross-source set and a clean eval protocol."
+    }
+  ],
+  "rejected": [
+    {
+      "name": "FinBen (arXiv 2402.12659) as a candidate",
+      "reason": "Benchmark, not one task. The GPT-4 figures I read are copied from earlier papers (FinQA 0.63, ConvFinQA 0.76). The many 0.00 scores on FNXL, FinRED and CD may be output-format failures, not skill gaps. FNXL is numeric XBRL-style tagging, which overlaps the excluded XBRL area."
+    },
+    {
+      "name": "MultiFinBen (arXiv 2506.14028)",
+      "reason": "Multilingual and multimodal, not one narrow task. Its headline numbers (GPT-4o 50.67% in v1, 46.01% in the ACL version) come from search snippets only, so unverified."
+    },
+    {
+      "name": "Bank-transaction and merchant-descriptor categorisation",
+      "reason": "No real, labelled, public dataset with LLM accuracy found. The Hugging Face classifiers train on synthetic US statement data and report accuracy on that data. The only real-data comparison (SetFit 66.7%) uses one author's private bank data and is unverified. arXiv 2601.05271 gives no numbers on the page."
+    },
+    {
+      "name": "SEC 8-K item classification",
+      "reason": "No verified head-to-head result of a fine-tuned small model against GPT-4. The closest hits are a non-arXiv thesis without GPT-4 and a 2026 event-tagging paper (arXiv 2607.08346) whose accuracy I did not read."
+    },
+    {
+      "name": "Financial news sentiment (FinBERT vs GPT-4, arXiv 2409.11408)",
+      "reason": "Not opened, so unverified; sentiment is also a saturated task with weak 'LLM cannot do it' evidence. Would not show a bank workflow the brief asks for."
+    },
+    {
+      "name": "Numeric claim detection (Zero is Not Hero, arXiv 2305.16633)",
+      "reason": "Reports RoBERTa-large F1 0.9642 vs ChatGPT-3.5 0.8136, but the search summary says the claim dataset is not public, and GPT-3.5 is not a frontier model. FinNum-3 has public data, but I found no GPT-4 score on it and did not check its licence."
+    },
+    {
+      "name": "Credit-agreement covenant extraction",
+      "reason": "No public covenant-labelled set found. CorpFin v2 is private. KG-QAGen (arXiv 2505.12495) is a QA set whose label origin and licence I did not verify. The 2026 'A Few Good Clauses' paper (arXiv 2605.05532) has an unreleased eval set and an unclear licence. Its results are used as counterevidence for MAUD."
+    },
+    {
+      "name": "Earnings-call guidance extraction",
+      "reason": "Not researched in this pass. Left for a later search."
+    }
+  ]
+}

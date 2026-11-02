@@ -46,8 +46,10 @@ split on attributes you can name. Footwear averages about 42 ten-digit siblings 
 7. **Leakage and drift checks:** exact-duplicate removal across splits; obsolete codes dropped; ruling IDs kept for
    provenance.
 
-**Open risk:** the attribute lexicon decides dimensions and NEED_INFO labels, so 50 labels need a hand review before
-training. The first draft already caught two lexicon bugs ("man-made" read as gender, "pigskin" as "ski").
+**Label review done 2026-11-01** (delegated to Claude by Innocent): 100 items read in two rounds plus a pattern audit
+of every item; seven error patterns fixed in code with regression tests; 83 conflicting items dropped. Evidence must
+now support the gold line over the sibling, not merely mention the dimension. Record and remaining limits:
+`docs/data/label-review-2026-11-01.md`.
 
 ## Model and training (proposed)
 

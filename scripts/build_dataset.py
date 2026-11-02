@@ -8,6 +8,7 @@ Writes {train,dev,test}.jsonl and stats.json to --out. Labels come only from the
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import random
 import re
@@ -16,7 +17,7 @@ from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from tariff_slm.data.attributes import deciding_dimension, describes, stated_value, strip_dimension  # noqa: E402
+from tariff_slm.data.attributes import CONFLICT, deciding_dimension, evidence, strip_dimension  # noqa: E402
 from tariff_slm.data.candidates import BM25, candidate_set, nearest_siblings  # noqa: E402
 from tariff_slm.data.rulings import load_rulings  # noqa: E402
 from tariff_slm.data.schedule import load_schedule  # noqa: E402
@@ -69,33 +70,51 @@ def main() -> int:
     for split, rows in by_split.items():
         items = []
         for i, r in enumerate(rows):
-            cands = candidate_set(r.code10, sched, a.k, seed=hash((a.seed, r.ruling_id)) & 0xFFFF)
+            # A stable seed: Python's hash() of a string changes per process, which reshuffled candidates on every
+            # build before 2026-11-01. The frozen eval files predate this fix (checksums in docs/data/README.md).
+            cands = candidate_set(r.code10, sched, a.k,
+                                  seed=int(hashlib.sha1(f"{a.seed}:{r.ruling_id}".encode()).hexdigest()[:8], 16))
             sib = nearest_siblings(r.code10, sched, 1)
             dim, gnode, snode = deciding_dimension(sched[r.code10].chain, sched[sib[0]].chain) if sib else (None, "", "")
-            stated = describes(r.description, dim) if dim else None
+            ev = evidence(r.description, dim, gnode, snode)
             residual = gnode.lower().startswith("other")
+            if ev == CONFLICT and not residual:
+                # The description points at the sibling line (mixed wearers, or a fiber the gold line excludes).
+                kinds["dropped_conflict"] += 1
+                continue
+            sibling_residual = snode.strip(" :").lower() == "other"
+            if dim and not ev and not residual and sibling_residual:
+                # The gold line names an attribute, its sibling is "Other", and the description doesn't state it. From
+                # the description alone the answer would be "Other", yet CBP chose the attribute line (the ruling
+                # stated a fact the summary dropped), so the item can't be labelled consistently. Label review
+                # decision 5, 2026-11-01.
+                kinds["dropped_absent_vs_residual"] += 1
+                continue
             # A residual gold line ("Other") is decided by the absence of the sibling's attribute, so it is never NEED_INFO.
             kind = ("decide_unlabelled" if dim is None else "decide_residual" if residual
-                    else "decide" if stated else "need_info_natural")
+                    else "decide" if ev else "need_info_natural")
             base = {
                 "id": f"{r.ruling_id.replace(' ', '')}", "ruling_id": r.ruling_id, "date": r.date, "split": split,
                 "chapter": r.code10[:2], "description": r.description,
                 "candidates": [{"code": sched[c].dotted, "text": sched[c].text, "general_rate": sched[c].general_rate} for c in cands],
                 "gold_code": sched[r.code10].dotted, "nearest_sibling": sched[sib[0]].dotted if sib else None,
                 "deciding_dimension": dim, "gold_node": gnode, "sibling_node": snode, "kind": kind,
-                "gold_value": stated_value(r.description, dim) if kind == "decide" else None,
+                "gold_value": ev if kind == "decide" else None,
                 "expected": {"decision": "NEED_INFO" if kind == "need_info_natural" else "SELECT",
                              "code": None if kind == "need_info_natural" else sched[r.code10].dotted,
                              "dimension": dim},
                 "provenance": {"source": "CBP CROSS via HF orlandowhite/hts-cross-rulings", "original_text_sha1": r.source_sha1},
             }
             items.append(base); kinds[kind] += 1; dims[dim] += 1
-            if split != "train" and kind == "decide" and rng.random() < a.ablate_share:
-                ab = dict(base, id=base["id"] + "-ablated", kind="need_info_ablated",
-                          description=strip_dimension(r.description, dim), gold_value=None,
-                          expected={"decision": "NEED_INFO", "code": None, "dimension": dim})
-                if not describes(ab["description"], dim):
+            if split != "train" and kind == "decide" and not sibling_residual and rng.random() < a.ablate_share:
+                stripped = strip_dimension(r.description, dim)
+                # Keep the copy only if it reads cleanly and no longer supports either line on this dimension.
+                if stripped and evidence(stripped, dim, gnode, snode) is None:
+                    ab = dict(base, id=base["id"] + "-ablated", kind="need_info_ablated", description=stripped,
+                              gold_value=None, expected={"decision": "NEED_INFO", "code": None, "dimension": dim})
                     items.append(ab); kinds["need_info_ablated"] += 1
+                else:
+                    kinds["ablation_rejected"] += 1
             if i % 4 == 0 or split != "train":
                 top = bm.search(r.description, 50)
                 recall[split]["n"] += 1

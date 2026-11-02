@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tariff SLM training roadmap</title>
+<style>
+  :root {
+    --bg: #fbfaf7; --surface: #ffffff; --surface-2: #f2efe8; --text: #1d1b16; --muted: #615d52;
+    --line: #dcd7ca; --accent: #1f5f4a; --accent-soft: #dcefe7; --warn: #8a5a00; --warn-soft: #fbefd2;
+    --bad: #9b2c2c; --bad-soft: #f8dcdc; --code-bg: #efece3;
+    --radius: 10px; --max: 920px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15140f; --surface: #1d1c16; --surface-2: #26241c; --text: #ece9de; --muted: #a8a496;
+      --line: #36342a; --accent: #6fcfa8; --accent-soft: #1d3a2f; --warn: #e6b94f; --warn-soft: #3a2f12;
+      --bad: #f09090; --bad-soft: #402020; --code-bg: #26241c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15140f; --surface: #1d1c16; --surface-2: #26241c; --text: #ece9de; --muted: #a8a496;
+    --line: #36342a; --accent: #6fcfa8; --accent-soft: #1d3a2f; --warn: #e6b94f; --warn-soft: #3a2f12;
+    --bad: #f09090; --bad-soft: #402020; --code-bg: #26241c;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.6 var(--font); }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 16px 80px; }
+  header.top { padding: 64px 0 24px; border-bottom: 1px solid var(--line); }
+  .eyebrow { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+  h1 { font-size: clamp(28px, 5vw, 40px); line-height: 1.15; margin: 0 0 12px; }
+  h2 { font-size: 26px; line-height: 1.25; margin: 56px 0 12px; scroll-margin-top: 70px; }
+  h3 { font-size: 18px; margin: 24px 0 6px; }
+  p { margin: 0 0 14px; max-width: 70ch; }
+  .lede { font-size: 19px; color: var(--text); max-width: 68ch; }
+  code { font-family: var(--mono); font-size: .9em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+  pre { font-family: var(--mono); font-size: 14px; line-height: 1.5; background: var(--code-bg); border: 1px solid var(--line);
+        border-radius: var(--radius); padding: 14px 16px; overflow-x: auto; margin: 10px 0 16px; }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  nav.toc { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line);
+            display: flex; gap: 6px; overflow-x: auto; padding: 10px 0; margin: 0 -16px; padding-inline: 16px; }
+  nav.toc a { white-space: nowrap; font-size: 14px; color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: 999px; border: 1px solid transparent; }
+  nav.toc a:hover { color: var(--text); border-color: var(--line); }
+  nav.toc a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .theme-btn { position: absolute; right: 16px; top: 16px; font: inherit; font-size: 14px; background: var(--surface); color: var(--text);
+               border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+  .theme-btn:hover { background: var(--surface-2); }
+  header.top { position: relative; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin: 14px 0; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 680px) { .grid2 { grid-template-columns: 1fr; } }
+  .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; vertical-align: middle; }
+  .t-measured { background: var(--accent-soft); color: var(--accent); }
+  .t-notrun { background: var(--warn-soft); color: var(--warn); }
+  .t-draft { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+  .t-block { background: var(--bad-soft); color: var(--bad); }
+
+  /* Pipeline strip */
+  .pipe { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 8px; }
+  .pipe li a { display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; align-items: center; text-decoration: none; color: inherit;
+               background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; }
+  .pipe li a:hover { border-color: var(--accent); }
+  .pipe .n { font-weight: 700; color: var(--accent); font-size: 20px; text-align: center; }
+  .pipe .t { font-weight: 600; }
+  .pipe .s { color: var(--muted); font-size: 14px; display: block; font-weight: 400; }
+  @media (max-width: 520px) { .pipe li a { grid-template-columns: 30px 1fr; } .pipe .tag { grid-column: 2; justify-self: start; } }
+
+  /* Step sections */
+  .step { border-top: 1px solid var(--line); padding-top: 4px; }
+  .step .num { font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--accent); text-transform: uppercase; margin-top: 44px; display: block; }
+  .step h2 { margin-top: 4px; }
+  .kv { display: grid; grid-template-columns: 130px 1fr; gap: 6px 16px; margin: 12px 0; }
+  .kv dt { font-weight: 600; color: var(--muted); font-size: 15px; }
+  .kv dd { margin: 0; }
+  @media (max-width: 560px) { .kv { grid-template-columns: 1fr; gap: 0; } .kv dd { margin-bottom: 10px; } }
+  .gate { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 10px 14px; border-radius: 0 var(--radius) var(--radius) 0; margin: 14px 0; max-width: 70ch; }
+  .gate strong { display: block; font-size: 13px; letter-spacing: .05em; text-transform: uppercase; }
+  .caution { border-left: 4px solid var(--warn); background: var(--warn-soft); padding: 10px 14px; border-radius: 0 var(--radius) var(--radius) 0; margin: 14px 0; max-width: 70ch; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 12px 0 18px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  .tablewrap { overflow-x: auto; }
+
+  /* Example switcher */
+  .tabs { display: flex; gap: 6px; margin: 10px 0 0; flex-wrap: wrap; }
+  .tabs button { font: inherit; font-size: 15px; padding: 8px 14px; border-radius: 8px 8px 0 0; border: 1px solid var(--line); border-bottom: none;
+                 background: var(--surface-2); color: var(--muted); cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--surface); color: var(--text); font-weight: 600; }
+  .tabpanel { background: var(--surface); border: 1px solid var(--line); border-radius: 0 var(--radius) var(--radius) var(--radius); padding: 16px 18px; }
+  .tabpanel[hidden] { display: none; }
+  .flow { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .flow .box { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; background: var(--bg); }
+  .flow .lab { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; display: block; }
+  .arrow { text-align: center; color: var(--muted); line-height: 1; }
+
+  details { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); margin: 10px 0; }
+  summary { cursor: pointer; padding: 12px 16px; font-weight: 600; }
+  details > div { padding: 0 16px 12px; }
+
+  footer { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">Theme</button>
+  <p class="eyebrow">Gauntlet AI Week 7 · inno-tariff-slm · November 1, 2026</p>
+  <h1>How we train the tariff specialist</h1>
+  <p class="lede">We are teaching a small open model one job: given a product description and eight candidate US tariff codes, pick the code Customs would assign and name the fact that decided it, or ask for the fact that is missing. This page walks through ten steps: nine to build, train, and publish the model, and a tenth that tests the hypothesis behind the whole project, that a trained small model earns its place next to a well-prompted general model with retrieval.</p>
+  <p>No model has been trained yet. Every number marked <span class="tag t-measured">Measured</span> comes from the data check of October 30, 2026, as corrected by the label review of November 1, 2026. Everything else is a plan.</p>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <a href="#target">The target</a>
+  <a href="#map">The nine steps</a>
+  <a href="#s1">1 Labels</a>
+  <a href="#s2">2 Evals</a>
+  <a href="#s3">3 Ceiling</a>
+  <a href="#s4">4 Data</a>
+  <a href="#s5">5 Train</a>
+  <a href="#s6">6 Compare</a>
+  <a href="#s7">7 Fix</a>
+  <a href="#s8">8 Curve</a>
+  <a href="#s9">9 Publish</a>
+  <a href="#s10">10 Hypothesis</a>
+  <a href="#risks">Risks</a>
+  <a href="#next">Next</a>
+</nav>
+
+<!-- ============ TARGET ============ -->
+<h2 id="target">The target: one behavior, shown first</h2>
+<p>The model does one thing. Here is that thing as an input and an output, using a real case from the project's research: CBP ruling NY N346508 placed a 100% silk scarf in the 1.2% duty line, while other silk scarves take 3.9%.</p>
+
+<div class="tabs" role="tablist" aria-label="Example behavior">
+  <button role="tab" id="tab-a" aria-selected="true" aria-controls="panel-a" type="button">Enough information</button>
+  <button role="tab" id="tab-b" aria-selected="false" aria-controls="panel-b" type="button">Missing information</button>
+</div>
+
+<div class="tabpanel" id="panel-a" role="tabpanel" aria-labelledby="tab-a">
+  <div class="flow">
+    <div class="box"><span class="lab">Input</span>
+      Description: "100% silk scarf, hemmed edges."<br>
+      Candidates: eight HTS lines from the same part of the schedule tree, including <code>6214.10.10.00</code> (silk scarves containing at least 70% silk, 1.2%) and <code>6214.10.20.00</code> (other silk scarves, 3.9%). Schedule wording is shortened here.
+    </div>
+    <div class="arrow" aria-hidden="true">↓ the model reads the text and compares the candidates</div>
+    <div class="box"><span class="lab">Output</span>
+<pre><code>{"decision": "SELECT", "code": "6214.10.10.00",
+ "deciding_attribute": {"dimension": "fiber_content", "value": "100% silk"},
+ "runner_up": "6214.10.20.00"}</code></pre>
+    </div>
+  </div>
+  <p style="margin-top:12px">The cited value, <code>100% silk</code>, appears word for word in the description. That is what "grounded" means in the spec.</p>
+</div>
+
+<div class="tabpanel" id="panel-b" role="tabpanel" aria-labelledby="tab-b" hidden>
+  <div class="flow">
+    <div class="box"><span class="lab">Input (illustrative, written for this page)</span>
+      Description: "Silky scarf, 90 cm square."<br>
+      Candidates: the same eight lines.
+    </div>
+    <div class="arrow" aria-hidden="true">↓ the description never states fiber content, and fiber content separates the top two candidates</div>
+    <div class="box"><span class="lab">Output</span>
+<pre><code>{"decision": "NEED_INFO", "code": null,
+ "deciding_attribute": {"dimension": "fiber_content", "value": null},
+ "runner_up": null}</code></pre>
+    </div>
+  </div>
+  <p style="margin-top:12px">"Silky" is a texture, not a fiber. A model that picks a code here is guessing, and a wrong code means a wrong duty on every shipment. Asking is the correct answer.</p>
+</div>
+
+<h3>Why this behavior, and what it does not prove</h3>
+<p>Frontier models are weak at full 10-digit classification. In the ATLAS benchmark (arXiv 2509.18400), GPT-5-Thinking got 25.0% fully right on 200 CBP rulings, and the authors' fine-tuned LLaMA-3.3-70B got 40%. That result suggests domain training can help. It is a reason to run an experiment, not a settled answer, for three reasons:</p>
+<ul>
+  <li>The trained model was 70B parameters. We plan 1.7B–4B.</li>
+  <li>ATLAS did not compare against a well-built retrieval (RAG) system. It lists retrieval augmentation and smaller models as future work.</li>
+  <li>It did not test our contract: choose among eight candidates, or ask for the missing fact.</li>
+</ul>
+<p>A small model that learns the narrow skill of comparing close candidates and refusing to guess is a testable claim. "A RAG system cannot do this" is a stronger claim that the evidence does not support, and this project does not make it. Step 10 is where we test the weaker, defensible claim.</p>
+
+<div class="card">
+  <strong>What stays outside the model.</strong> Finding the candidates (retrieval), duty rates and arithmetic, reading attributes out of invoices, and the final decision (a licensed person). The model trains on the choice between candidates only. Retrieval is weak today (plain BM25 finds the right code in the top 8 for 4% of test rulings), so the plan gives every model the same eight candidates and measures retrieval separately.
+</div>
+
+<!-- ============ MAP ============ -->
+<h2 id="map">The ten steps at a glance</h2>
+<p>Each step produces something the next step needs. Select a step to jump to it.</p>
+<ol class="pipe">
+  <li><a href="#s1"><span class="n">1</span><span class="t">Finalize the behavior and hand-review 50 labels<span class="s">Make sure the answers we train on are correct.</span></span><span class="tag t-measured">Review done</span></a></li>
+  <li><a href="#s2"><span class="n">2</span><span class="t">Build the evaluation harness<span class="s">Checks, judge, and the one-command <code>eval.py</code>.</span></span><span class="tag t-draft">Draft code</span></a></li>
+  <li><a href="#s3"><span class="n">3</span><span class="t">Run the prompt-ceiling ablation<span class="s">Find out how far prompting alone gets.</span></span><span class="tag t-measured">Done</span></a></li>
+  <li><a href="#s4"><span class="n">4</span><span class="t">Build and filter the training data<span class="s">Turn CBP rulings into training examples.</span></span><span class="tag t-draft">Draft build</span></a></li>
+  <li><a href="#s5"><span class="n">5</span><span class="t">Fine-tune the first model (QLoRA)<span class="s">A smoke run first, then the real run.</span></span><span class="tag t-notrun">Not run</span></a></li>
+  <li><a href="#s6"><span class="n">6</span><span class="t">Compare base against tuned<span class="s">The result the whole project is judged on.</span></span><span class="tag t-notrun">Not run</span></a></li>
+  <li><a href="#s7"><span class="n">7</span><span class="t">Diagnose a failure and fix it with data (v2)<span class="s">Required evidence that we understand the model.</span></span><span class="tag t-notrun">Not run</span></a></li>
+  <li><a href="#s8"><span class="n">8</span><span class="t">Run the data-efficiency curve<span class="s">How little data is enough.</span></span><span class="tag t-notrun">Not run</span></a></li>
+  <li><a href="#s9"><span class="n">9</span><span class="t">Publish, verify, and demo<span class="s">Dataset, checkpoint, results, video.</span></span><span class="tag t-notrun">Not run</span></a></li>
+  <li><a href="#s10"><span class="n">10</span><span class="t">Test the hypothesis: does the small model earn its place?<span class="s">Tuned small model against a well-prompted general model with retrieval.</span></span><span class="tag t-notrun">Not run</span></a></li>
+</ol>
+
+<div class="caution"><strong>The order matters.</strong> Steps 1–3 happen before any training. If step 3 shows that a well-written prompt already passes the spec, the plan changes: we narrow the behavior instead of forcing a fine-tune. The brief rewards finding that out early. Step 10 reuses the step 3 and step 6 numbers, so it adds one comparison, not a second set of runs.</div>
+
+<!-- ============ STEP 1 ============ -->
+<section class="step" id="s1">
+  <span class="num">Step 1</span>
+  <h2>Finalize the behavior and hand-review 50 labels</h2>
+  <dl class="kv">
+    <dt>What it does</dt><dd>Locks the one-to-two-sentence behavior spec and checks that the answers we will train on are correct.</dd>
+    <dt>How it works</dt><dd>The "deciding attribute" for each example is computed by a lexicon: a hand-written list that maps schedule wording (such as "Of cotton" or "For women") to a dimension (<code>fiber_content</code>, <code>gender_age</code>, and so on). No model is involved. Because the lexicon sets both the attribute and the <code>NEED_INFO</code> labels, a lexicon bug becomes a training bug. The review checks those derived labels, not the tariff codes, which come from CBP and are trusted. For each item it asks: do the two schedule lines differ on the named attribute, does the description state it, and if not, is it truly absent?</dd>
+    <dt>Status</dt><dd><span class="tag t-measured">Measured</span> Done on November 1, 2026 by Claude, at Innocent's request. 100 items were read in two rounds, and every item was pattern-audited. Seven error patterns were fixed in the build code, not by editing labels; the worst was that cited words only had to mention the attribute, not separate the two lines. 83 items whose description contradicts CBP's code are dropped. Record: <code>docs/data/label-review-2026-11-01.md</code>.</dd>
+    <dt>Why it comes first</dt><dd>The first draft already caught two lexicon bugs: "man-made" was read as a gender word, and "pigskin" as "ski". A model trained on those labels learns the bugs.</dd>
+    <dt>Output</dt><dd>A signed behavior spec and a reviewed label sample with a count of errors found and fixed.</dd>
+  </dl>
+  <div class="gate"><strong>Gate</strong>Innocent signs the spec, and the label review finds no unfixed lexicon error pattern. The second half is met; the spec sign-off is open.</div>
+</section>
+
+<!-- ============ STEP 2 ============ -->
+<section class="step" id="s2">
+  <span class="num">Step 2</span>
+  <h2>Build the evaluation harness before training</h2>
+  <dl class="kv">
+    <dt>What it does</dt><dd>Scores any model, including a baseline, a frontier model, or our tuned model, against the same test items with the same rules.</dd>
+    <dt>How it works</dt><dd>Two layers. The <strong>behavioral check</strong> is code: valid JSON, the right code, the right dimension, and a cited value that appears in the description. The <strong>judge</strong> is a model that answers two yes/no questions for each <code>SELECT</code>: is the attribute stated, and does it separate the chosen code from the runner-up. We calibrate the judge against about 20 hand labels before it counts, and save its raw output as JSONL.</dd>
+    <dt>Output</dt><dd><code>eval.py --model … --eval-set …</code> as a single command that prints the metrics table and writes the judge JSONL.</dd>
+  </dl>
+
+  <h3>The scorecard</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Metric</th><th>What it counts</th><th>Proposed bar</th></tr></thead>
+    <tbody>
+      <tr><td>Spec pass rate</td><td>Items that satisfy the whole behavior spec</td><td>Tuned ≥ base + 20 points</td></tr>
+      <tr><td>NEED_INFO recall</td><td>Insufficient items answered <code>NEED_INFO</code></td><td>≥ 0.7</td></tr>
+      <tr><td>Over-asking</td><td><code>NEED_INFO</code> on items that were decidable</td><td>≤ 0.1</td></tr>
+      <tr><td>Grounding</td><td>Cited value appears in the description</td><td>≥ 0.95</td></tr>
+      <tr><td>False confidence</td><td><code>SELECT</code> on insufficient items</td><td>Reported; lower is better</td></tr>
+      <tr><td>10-digit accuracy</td><td>Exact code match when a code is needed (6 and 8 digits alongside)</td><td>Reported, no bar</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>What the harness already measured</h3>
+  <p><span class="tag t-measured">Measured</span> on the reviewed 221-item test set, exact 10-digit match on items that need a code:</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Non-model baseline</th><th>10-digit accuracy</th></tr></thead>
+    <tbody>
+      <tr><td>Random pick among 8</td><td>11.4%</td></tr>
+      <tr><td>Keyword overlap</td><td>16.3%</td></tr>
+      <tr><td>Attribute rules</td><td>37.5% (spec pass 24.9%; caught 13.5% of ask-when-unsure cases; over-asked on 7.1%)</td></tr>
+    </tbody>
+  </table></div>
+  <p>Any trained model must beat these to mean anything. The rules baseline rose from 20.5% after the label review, mostly because it shares the improved lexicon, so its attribute scores are optimistic. Its code accuracy is scored against CBP's codes, so about 38% is a real bar for the tuned model.</p>
+
+  <div class="caution"><strong>Small test set.</strong> The test set has 110 decidable items. By my estimate, a pass rate near 50% on 110 items carries roughly ±10 points of sampling noise at 95% confidence. A "+20 points" claim survives that; a "+5 points" claim does not. Report the counts next to every percentage.</div>
+
+  <div class="gate"><strong>Gate</strong>The harness runs end to end on the three baselines and one judge calibration set, and the judge agrees with the hand labels well enough to trust (agree on the threshold before looking at results).</div>
+</section>
+
+<!-- ============ STEP 3 ============ -->
+<section class="step" id="s3">
+  <span class="num">Step 3</span>
+  <h2>Run the prompt-ceiling ablation</h2>
+  <dl class="kv">
+    <dt>What it does</dt><dd>Answers "could a good prompt do this without training?" with a measurement.</dd>
+    <dt>How it works</dt><dd>Two frontier model families (proposed: Anthropic and OpenAI) × three prompt strategies (zero-shot, few-shot, structured chain-of-thought) × at least 30 scenarios per cell. Each model sees the same eight candidates and is scored by the step 2 harness. That is at least six cells and 180 scored answers.</dd>
+    <dt>Where it runs</dt><dd>On the VPS. The API keys live there, and this Mac has none.</dd>
+    <dt>Output</dt><dd>A report with one number per cell and the best prompt's failure examples.</dd>
+  </dl>
+  <div class="card"><strong>Result, November 1, 2026.</strong> <span class="tag t-measured">Measured</span> Best cell: Claude Opus 5.5 with the structured reasoning prompt, 86.0% spec adherence and 87.9% robustness; GPT-5.6 Sol's best was 82.8% and 67.2%. The three strategies land within 1.3 points (Opus) and 4.5 points (GPT) of each other: a plateau. The failure that survives every prompt is choosing between a residual "Other" line and its named sibling (13 of the best cell's 22 failures); an embedded instruction also makes GPT adopt the wrong code on 6–10 of 14 items. No absolute spec bar was set before the run, so that bar is the open decision. Report: <code>docs/evals/prompt-ceiling-2026-11-01.md</code>.</div>
+  <div class="gate"><strong>Gate</strong>There are two possible results, and both are acceptable. If the best prompt fails the spec in ways a small model could learn, fine-tuning is justified. If the best prompt already passes reliably, we say so and narrow the behavior (for example, only the harder "close siblings" cases).</div>
+</section>
+
+<!-- ============ STEP 4 ============ -->
+<section class="step" id="s4">
+  <span class="num">Step 4</span>
+  <h2>Build and filter the training data</h2>
+  <dl class="kv">
+    <dt>What it does</dt><dd>Turns public CBP rulings into training examples in the exact input/output format from the target section.</dd>
+    <dt>Where the answers come from</dt><dd>The ruling's code and the USITC schedule. Never from a teacher model. A teacher model may write a short explanation afterward, and we keep it only if its code and attribute match the labels.</dd>
+  </dl>
+
+  <h3>One ruling becomes one example</h3>
+  <ol>
+    <li><strong>Filter.</strong> Keep rulings with exactly one 10-digit code that exists in today's schedule, in Chapters 61, 62, and 64 (knit apparel, woven apparel, footwear). Drop descriptions that mention HTS numbers or code digits, because those leak the answer.</li>
+    <li><strong>Split by date.</strong> Train on rulings up to 2022, tune on 2023, test on 2024–2025. Remove any training description that duplicates a dev or test description. Test rulings postdate much of what frontier models trained on, which limits memorization.</li>
+    <li><strong>Build candidates.</strong> The correct code plus its seven nearest siblings in the schedule tree (same 8 digits first, then 6, then 4), shuffled with a fixed seed.</li>
+    <li><strong>Compute the deciding attribute.</strong> Find the first level where the correct code's schedule path differs from its nearest sibling's, and map that wording to a dimension with the lexicon.</li>
+    <li><strong>Create <code>NEED_INFO</code> cases without inventing ambiguity.</strong> A <em>natural</em> case is a ruling whose correct line names a positive attribute (such as "For women") that the description never states. An <em>ablated</em> case removes the attribute words from a decidable item. A residual line ("Other") is decided by absence, so it is never <code>NEED_INFO</code>.</li>
+    <li><strong>Check for leakage and drift.</strong> Exact-duplicate removal across splits, obsolete codes dropped, ruling IDs kept for provenance.</li>
+  </ol>
+
+  <h3>The data we have</h3>
+  <p><span class="tag t-measured">Measured</span> after the November 1, 2026 label review:</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Step</th><th>Count</th></tr></thead>
+    <tbody>
+      <tr><td>Single-code rulings, all chapters</td><td>33,144</td></tr>
+      <tr><td>In Chapters 61, 62, 64</td><td>9,566</td></tr>
+      <tr><td>Dropped: code no longer in the schedule</td><td>3,154</td></tr>
+      <tr><td>Train rulings (2000–2022)</td><td>5,865</td></tr>
+      <tr><td>Dev rulings (2023)</td><td>143 (plus 14 ablated copies)</td></tr>
+      <tr><td>Test rulings (2024–2025)</td><td>197 (plus 24 ablated <code>NEED_INFO</code> copies = 221 items)</td></tr>
+      <tr><td>Dropped: unstated attribute against an "Other" sibling</td><td>124 train, 6 dev, 4 test</td></tr>
+      <tr><td>Dropped: description contradicts CBP's code</td><td>83</td></tr>
+    </tbody>
+  </table></div>
+  <p>The training pool of 5,865 rulings covers the largest planned sweep point (4,000) with room to spare.</p>
+
+  <details>
+    <summary>Why Chapters 61, 62, and 64</summary>
+    <div><p>Among all chapters they hold the most rulings with currently valid codes, and their codes split on attributes a person can name: fiber, knit or woven, intended wearer, upper material. Footwear averages about 42 ten-digit siblings per 6-digit subheading, so the choice between close candidates is real.</p></div>
+  </details>
+  <details>
+    <summary>What we cannot publish yet</summary>
+    <div><p>The public copy of the rulings on Hugging Face (<code>orlandowhite/hts-cross-rulings</code>) has no license. We publish our derived dataset with provenance to CBP and do not re-upload that copy. We confirm CBP's terms before publishing anything derived.</p></div>
+  </details>
+
+  <div class="gate"><strong>Gate</strong>The build is reproducible from one script and a seed, no description appears in two splits, and the step 1 label review is passed.</div>
+</section>
+
+<!-- ============ STEP 5 ============ -->
+<section class="step" id="s5">
+  <span class="num">Step 5</span>
+  <h2>Fine-tune the first model with QLoRA</h2>
+  <dl class="kv">
+    <dt>What it does</dt><dd>Adjusts a small open model so that, for these inputs, it produces the JSON from the target section.</dd>
+    <dt>How it works</dt><dd>QLoRA keeps the base model's billions of weights frozen in compressed 4-bit form and trains a small set of extra weights (adapters) on top. That is why a 1.7B-parameter model fits on one 24 GB GPU. Training uses <em>response-only loss</em>: the model is graded only on the JSON it writes, not on re-predicting the prompt.</dd>
+  </dl>
+
+  <h3>The starting recipe</h3>
+  <p>These are starting estimates, not measured settings.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Choice</th><th>Starting value</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Base model</td><td>Qwen3-1.7B Instruct, thinking mode off</td><td>Fits a 24 GB card. Move to Qwen3-4B only if 1.7B underfits.</td></tr>
+      <tr><td>Method</td><td>QLoRA with Unsloth or TRL</td><td>Cheap, fast to repeat.</td></tr>
+      <tr><td>LoRA rank</td><td>16</td><td>Common default; change only if the failure analysis points to capacity.</td></tr>
+      <tr><td>Learning rate</td><td>2e-4</td><td>Common QLoRA default.</td></tr>
+      <tr><td>Epochs</td><td>1–2</td><td>Small data overfits quickly.</td></tr>
+      <tr><td>Sequence length</td><td>About 1,024 tokens</td><td>Eight candidates plus the description must fit.</td></tr>
+      <tr><td>Prompt</td><td>Same chat template and system prompt in training and evaluation</td><td>A mismatch silently lowers scores.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Two runs, in this order</h3>
+  <ol>
+    <li><strong>Smoke run.</strong> A few dozen examples through generate → train → evaluate. The goal is a working loop with real numbers, however poor. A broken pipeline is cheaper to find here than after a full run.</li>
+    <li><strong>First real run.</strong> The full training pool at the starting recipe, scored by the step 2 harness.</li>
+  </ol>
+  <p>Compute is one A100 or H100 on Modal, RunPod, or Colab. Gauntlet covers the cost. The plan expects each 1.7B run to take well under an hour, but that is an estimate until the smoke run times it.</p>
+
+  <div class="gate"><strong>Gate</strong>The smoke run completes the whole loop and produces a scored checkpoint, and the training prompt is byte-identical to the evaluation prompt.</div>
+</section>
+
+<!-- ============ STEP 6 ============ -->
+<section class="step" id="s6">
+  <span class="num">Step 6</span>
+  <h2>Compare base against tuned</h2>
+  <dl class="kv">
+    <dt>What it does</dt><dd>Produces the headline result: the same eval set, the same prompt template, the untuned base model against the tuned one.</dd>
+    <dt>How it works</dt><dd>Run <code>eval.py</code> on both. Report every metric from the scorecard with counts. Also include the frontier-with-same-candidates result from step 3, so the reader sees where the small model lands relative to a large one.</dd>
+    <dt>What we expect to learn</dt><dd>Whether the tuned model asks when it should (NEED_INFO recall), stays quiet when it should (over-asking), and cites only what the description says (grounding).</dd>
+  </dl>
+  <div class="gate"><strong>Gate</strong>Tuned beats base on spec pass rate by at least 20 points. If it does not, the failure condition applies: report no gain, diagnose, and narrow the behavior. We do not tune hyperparameters to rescue a null result.</div>
+</section>
+
+<!-- ============ STEP 7 ============ -->
+<section class="step" id="s7">
+  <span class="num">Step 7</span>
+  <h2>Diagnose a failure and fix it with data (v2)</h2>
+  <dl class="kv">
+    <dt>What it does</dt><dd>Shows we understand why the model fails, by fixing one failure through the training data and measuring the change.</dd>
+    <dt>How it works</dt><dd>Read the tuned model's wrong answers and group them by cause. For each group, ask what the data failed to teach. Pick one failure and change the data, then retrain and score again.</dd>
+  </dl>
+  <h3>Example of the loop (hypothetical until step 6 runs)</h3>
+  <ul>
+    <li><strong>Symptom:</strong> the model picks a code on "silky scarf" items instead of asking.</li>
+    <li><strong>Diagnosis:</strong> the training set has few natural <code>NEED_INFO</code> cases for fiber content, so the model has seen the pattern rarely.</li>
+    <li><strong>Data fix:</strong> add ablated <code>NEED_INFO</code> copies for fiber content from the training rulings.</li>
+    <li><strong>Check:</strong> retrain; fiber-content NEED_INFO recall rises, and over-asking on decidable items stays at or below 0.1.</li>
+  </ul>
+  <div class="gate"><strong>Gate</strong>One named failure mode, one data change, and a before/after score on the same eval set with the over-asking metric reported alongside.</div>
+</section>
+
+<!-- ============ STEP 8 ============ -->
+<section class="step" id="s8">
+  <span class="num">Step 8</span>
+  <h2>Run the data-efficiency curve</h2>
+  <dl class="kv">
+    <dt>What it does</dt><dd>Answers "how little training data is enough?" with a curve.</dd>
+    <dt>How it works</dt><dd>Train on nested subsets (each one contains the smaller ones): for example 500, 1,000, 2,000, and 4,000 rulings. Score every checkpoint on the same held-out set and plot spec pass rate against N. The early submission needs at least two points; the final needs at least four.</dd>
+    <dt>Output</dt><dd>The curve and a justified minimum N: the smallest size that clears the bar from step 6.</dd>
+  </dl>
+  <p>If the curve is flat from the first point, the behavior is easy for this model and the data is not the lever. If it keeps climbing at 4,000, we say the minimum N was not found and show how far the 5,865 available rulings extend it.</p>
+</section>
+
+<!-- ============ STEP 9 ============ -->
+<section class="step" id="s9">
+  <span class="num">Step 9</span>
+  <h2>Publish, verify, and demo</h2>
+  <dl class="kv">
+    <dt>What it does</dt><dd>Makes the work checkable by someone else.</dd>
+    <dt>Contents</dt><dd>
+      <ul style="margin:0;padding-left:20px">
+        <li>The derived dataset, once CBP's terms are confirmed.</li>
+        <li>The public model on Hugging Face with a pinned commit hash and a running inference demo.</li>
+        <li>Results for base against tuned on our test set and on the staff held-out set.</li>
+        <li>One-command <code>eval.py --model --eval-set</code>, raw judge JSONL, pinned versions, and the ablation scripts and logs.</li>
+        <li>The Brainlift document and a 3–5 minute demo video that includes a live prompt supplied by a grader.</li>
+      </ul></dd>
+    <dt>Stretch</dt><dd>A minimal agent demo that wraps the specialist with retrieval and a duty calculator. Skip it if the required items are not done.</dd>
+  </dl>
+</section>
+
+<!-- ============ STEP 10 ============ -->
+<section class="step" id="s10">
+  <span class="num">Step 10</span>
+  <h2>Test the hypothesis: does the small model earn its place?</h2>
+  <p>Steps 1–9 show whether the tuned model beats its own untuned base. They do not show whether anyone needs it. A retrieval (RAG) system already feeds a general model the schedule text, notes, and similar past rulings, and that model reasons over them. For many products, such as a blouse with a matching ruling, that may be enough. Step 10 tests the claim this project can defend:</p>
+  <div class="card"><strong>Hypothesis.</strong> Within a retrieval-based system, a trained small tariff specialist chooses between close candidates, cites real evidence, and asks for missing facts more reliably or more cheaply than a well-prompted general model.</div>
+
+  <dl class="kv">
+    <dt>What it does</dt><dd>Compares three decision models on identical inputs, so a difference in results comes from the model and nothing else.</dd>
+    <dt>How it works</dt><dd>Give the same held-out products, the same eight candidates, the same schedule text, and the same retrieved rulings to each arm. Score all arms with the step 2 harness.</dd>
+  </dl>
+
+  <h3>The three arms</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Arm</th><th>Model</th><th>What it answers</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Well-prompted general model (the best cell from step 3)</td><td>What retrieval plus prompting already achieves.</td></tr>
+      <tr><td>B</td><td>Small model before training</td><td>How much of the result is the base model, not our training.</td></tr>
+      <tr><td>C</td><td>The same small model after training</td><td>What the training adds.</td></tr>
+    </tbody>
+  </table></div>
+  <p>The comparison that decides the hypothesis is <strong>C against A</strong>. The comparison of C against B (step 6) shows that training worked at all.</p>
+
+  <h3>Two ways to supply the candidates</h3>
+  <ul>
+    <li><strong>Gold code forced into the eight.</strong> This isolates decision quality. It cannot show end-to-end performance, because real retrieval often misses the right code (plain BM25 hits 4% at eight on our test rulings).</li>
+    <li><strong>Candidates from the real retriever.</strong> This shows end-to-end performance. A miss counts against retrieval recall, never against the model, so a missing candidate does not look like a reasoning failure.</li>
+  </ul>
+  <p>Report both, in separate tables.</p>
+
+  <h3>Where the hypothesis should show or fail</h3>
+  <p>Easy items hide the difference: a matching precedent lets any model succeed, and a clear numeric threshold is better checked in ordinary code. The training hypothesis is strongest where there is no exact matching ruling, several similar precedents exist, and the candidates differ subtly. For example, a hooded garment with a zipper can resemble both a shirt and a sweatshirt; the model must decide which facts control the code, which similarities are incidental, and whether the description says enough.</p>
+  <p>So score a <strong>hard slice</strong> separately: test items where the retriever returns no ruling for the same product, and items whose candidates share all but one attribute. The slice rule is written down before any model sees the test set.</p>
+
+  <h3>What gets measured</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Measure</th><th>Why it matters for this hypothesis</th></tr></thead>
+    <tbody>
+      <tr><td>Spec pass rate, 10-digit accuracy</td><td>Does C match or beat A?</td></tr>
+      <tr><td>Unsupported selections (false confidence)</td><td>Does the model pick a code when the deciding fact is missing?</td></tr>
+      <tr><td>NEED_INFO recall, and whether the question names the right missing fact</td><td>Is the clarification useful, not just present?</td></tr>
+      <tr><td>Over-asking</td><td>A model that always asks looks good on recall and is useless.</td></tr>
+      <tr><td>Grounding</td><td>Does it cite facts the description states?</td></tr>
+      <tr><td>Cost and latency per decision</td><td>A small model can win on cost even when it ties on accuracy. Count hosting and utilization, not only token price.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>How to read the result</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>If you see</th><th>The claim we can make</th></tr></thead>
+    <tbody>
+      <tr><td>C beats A on the hard slice by more than the noise</td><td>Training improves judgment on close calls. This is the strongest result.</td></tr>
+      <tr><td>C ties A and costs less per decision, including hosting</td><td>The small model earns its place on cost. Say that the accuracy did not improve.</td></tr>
+      <tr><td>A meets the behavior bar and beats C</td><td>Retrieval plus prompting is enough. Narrow or reconsider the training target and report the finding. A privacy argument can still justify a small deployment, but it does not require fine-tuning.</td></tr>
+      <tr><td>C beats B but loses to A, with no cost advantage</td><td>Training worked and the specialist is still not needed.</td></tr>
+    </tbody>
+  </table></div>
+  <p>With 110 decidable test items (see the step 2 note on noise), most of these differences must be large to count. Commit the margin that counts as "ties" before the first run, and report counts beside every percentage.</p>
+
+  <div class="caution"><strong>Open design question: should the model see retrieved rulings?</strong> A fair three-arm comparison gives every arm the same retrieved rulings, which means the trained model's prompts must include them. Our current training format has candidates and schedule text only. Adding retrieved rulings changes the example format in step 4, so it is cheaper to decide now than to retrain after step 5. I recommend a two-stage plan: run the first comparison on the current format (candidates and schedule text for all arms), then, if the result is close or ambiguous, add retrieved rulings to all three arms and retrain. Innocent decides.</div>
+
+  <div class="gate"><strong>Gate</strong>The report states the hypothesis, shows arms A, B, and C on identical inputs with retrieval scored separately, includes the hard slice and cost with hosting, and ends with one sentence from the table above that the numbers support. If A wins, we say so.</div>
+</section>
+
+<!-- ============ RISKS ============ -->
+<h2 id="risks">What can go wrong</h2>
+<div class="grid2">
+  <div class="card"><h3 style="margin-top:0">Retrieval is the bottleneck</h3>
+    <p>Plain BM25 finds the right code in the top 8 for 4% of test rulings. The project avoids this by handing every model the same eight candidates, but the product claim ("an analyst that finds the code") depends on retrieval we have not built. Say so in the Brainlift.</p></div>
+  <div class="card"><h3 style="margin-top:0">Labels come from our own lexicon</h3>
+    <p>The attribute labels and the rules baseline share one lexicon, so agreement between them proves little. The 50-label hand review and the judge calibration are the independent checks.</p></div>
+  <div class="card"><h3 style="margin-top:0">Small dev and test sets</h3>
+    <p>143 dev rulings and 197 test rulings give wide error bars. Report counts, avoid claims smaller than the noise, and use the staff held-out set as the second opinion.</p></div>
+  <div class="card"><h3 style="margin-top:0">Prompting and retrieval may already be enough</h3>
+    <p>If step 3 shows a strong frontier prompt passes, or step 10 shows a general model with retrieval matches the tuned model, fine-tuning adds little. The plan treats that as a valid finding and narrows the behavior instead. The project does not claim that RAG cannot do this.</p></div>
+</div>
+
+<h3>Blockers that need you</h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>Blocker</th><th>Needed for</th><th>Owner</th></tr></thead>
+  <tbody>
+    <tr><td>Sign the behavior spec</td><td>Step 1</td><td>Innocent</td></tr>
+    <tr><td>About 20 human labels to calibrate the judge</td><td>Step 2 gate</td><td>Innocent (the label review did not cover this)</td></tr>
+    <tr><td>Frontier API keys (on the VPS, none on the Mac)</td><td>Step 3 and the judge</td><td>Run on the VPS</td></tr>
+    <tr><td>GPU on Modal, RunPod, or Colab</td><td>Steps 5, 7, 8</td><td>Innocent picks, Gauntlet covers</td></tr>
+    <tr><td>Hugging Face account</td><td>Step 9</td><td>Innocent</td></tr>
+    <tr><td>GitLab <code>origin</code> for the repo</td><td>Versioning rule</td><td>Innocent</td></tr>
+    <tr><td>Check CBP and dataset terms</td><td>Publishing the dataset</td><td>Claude researches, Innocent decides</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============ NEXT ============ -->
+<h2 id="next">The next action</h2>
+<p>The behavior spec is approved and the prompt-ceiling ablation is done. Training is next.</p>
+<ol>
+  <li>Innocent sets the reliability bar the tuned model must clear, recorded as set after the ablation.</li>
+  <li>Innocent picks the GPU (Modal, RunPod, or Colab) for the QLoRA smoke run.</li>
+  <li>Innocent decides whether training prompts include retrieved rulings (step 10), before the data format is frozen.</li>
+</ol>
+
+<footer>
+  Sources: <code>docs/planning/tariff-*.md</code>, <code>docs/research/slm-vs-rag.md</code>, <code>docs/data/README.md</code>, the ATLAS paper (arXiv 2509.18400), and the Week 7 brief. Measured numbers are from the October 30, 2026 data check as corrected by the November 1, 2026 label review (<code>docs/data/label-review-2026-11-01.md</code>). The ±10 point noise figure is an estimate.
+</footer>
+
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  try { var saved = localStorage.getItem('tslm-theme'); if (saved) root.setAttribute('data-theme', saved); } catch (e) {}
+  document.getElementById('themeBtn').addEventListener('click', function () {
+    var dark = root.getAttribute('data-theme') === 'dark' ||
+      (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var next = dark ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('tslm-theme', next); } catch (e) {}
+  });
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  function select(tab) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { select(t); });
+    t.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        var n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+        n.focus(); select(n);
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

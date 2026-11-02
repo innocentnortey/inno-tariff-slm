@@ -1,0 +1,1340 @@
+{
+ "meta": {
+  "title": "SLM Domain Explorer",
+  "built": "2026-10-29",
+  "brief": "course-material/2026-10-27-week7-train-your-own-slm-brief.md",
+  "companion": "docs/research/slm-idea-explorer.html (behavior-first ideas, same day)",
+  "caveat": "<b>Read this first.</b> The Week 7 brief grades a <i>behavior</i>, not a capability: &ldquo;This week is not about beating a frontier model,&rdquo; and it warns against chasing capability benchmarks. So each candidate is written as a pass/fail behavior spec (choose from retrieved candidates, return one valid answer, ask when the input can't decide it) with a deterministic accuracy check underneath. The frontier-weakness numbers come from published benchmarks, several of them on older models; your own prompt-ceiling ablation is what proves the gap. Cybersecurity candidates were removed at your request.",
+  "footer": "Sources were read on the live web on 2026-10-29 by research agents and spot-checked (arXiv titles, Hugging Face API metadata, the USITC HTS API). Items marked <i>unverified</i> came from search summaries or pages that could not be opened. Raw research and rebuild scripts: <code>docs/research/slm-domain-explorer-data/</code>."
+ },
+ "rubric": [
+  {
+   "key": "data",
+   "label": "Training data",
+   "help": "Size, labels, licence and access of public data with ground truth."
+  },
+  {
+   "key": "ft",
+   "label": "Fine-tuning value",
+   "help": "How likely a 1B–4B QLoRA model adds value over prompting plus retrieval."
+  },
+  {
+   "key": "business",
+   "label": "Business value",
+   "help": "Who pays for the capability and how much the error costs them."
+  },
+  {
+   "key": "agentic",
+   "label": "Agentic demo",
+   "help": "Real tools, APIs and agents the model can sit inside."
+  },
+  {
+   "key": "evidence",
+   "label": "Frontier-weakness evidence",
+   "help": "How directly published results show frontier models failing this task."
+  },
+  {
+   "key": "fit",
+   "label": "Brief fit",
+   "help": "Passes the prompt-ceiling gate, has a deterministic check and fits about four days."
+  }
+ ],
+ "ideas": [
+  {
+   "rank": 1,
+   "name": "Tariff Classifier: 10-digit HTS codes from product descriptions",
+   "industry": "Trade and logistics",
+   "verdict": "Best overall: fresh, direct evidence that GPT-5-class models miss most 10-digit codes, 54,558 labelled rulings, and a live government API for the agent.",
+   "task": "Given a product description and a short list of candidate HTS subheadings from the USITC schedule, pick the one 10-digit code CBP would assign, or ask for the one missing attribute that separates the top two.",
+   "why_hard": "The last four digits turn on fine distinctions (knit vs woven, percent by weight, for retail sale, value per unit) applied through the General Rules of Interpretation. ATLAS (2025) measured GPT-5-Thinking at 25.0% fully correct at 10 digits and Gemini 2.5 Pro Thinking at 13.5%, on a 200-ruling test set.",
+   "business": "Importers, customs brokers and cross-border e-commerce sellers. A wrong code means a wrong duty rate, penalties under 19 USC 1592 or overpayment, and in 2025–26 tariff swings make the code far more expensive to get wrong. Brokers search CROSS rulings by hand today.",
+   "ft_vs_rag": "Retrieval supplies the candidate codes and their legal text; a 4B model cannot memorise 17,000+ schedule lines, so retrieval stays. What fine-tuning adds is the decision pattern from 54,558 past rulings: which attribute decides between near-identical subheadings and when the description is too thin to decide. ATLAS shows fine-tuning lifted a 70B model from 2.1% to 40.0% at 10 digits; no 1B–4B result exists yet.",
+   "behavior_spec": "Given a product description and N retrieved candidate subheadings, the model returns one JSON object naming exactly one candidate 10-digit code and the product attribute that rules out the runner-up, or NEED_INFO naming the missing attribute when the description cannot separate the top two. Pass = valid JSON, code from the candidate list, and (when the ruling decides it) exact match to the CBP code.",
+   "example_input": "Decorative glass globe displaying an underwater scene with dolphins, incorporated before solidification, resting on a plastic base with illuminated miniature lights, used for indoor decoration. Candidates: 7013.99.10.00, 7013.99.50.00, 9405.50.40.00, 6913.90.50.00.",
+   "example_output": "{\"hts10\": \"7013.99.10.00\", \"deciding_attribute\": \"pictorial scene embedded in the glass before solidification\", \"runner_up\": \"9405.50.40.00\", \"why_not_runner_up\": \"lights are subordinate; essential character is the glass article (GRI 3(b))\"}",
+   "example_note": "Real row from orlandowhite/hts-cross-rulings (ruling NY I84264, 2002). The candidate list and the JSON reasoning fields are illustrative; build them with the USITC search tool.",
+   "agentic_demo": [
+    "Intake agent reads a supplier invoice or Shopify listing and extracts product attributes (material, construction, use, value).",
+    "Retrieval tool queries the USITC HTS REST API and a local index of CROSS rulings for candidate headings and similar past rulings.",
+    "Tariff SLM picks one 10-digit code from the candidates, names the deciding attribute, or returns NEED_INFO with the attribute to ask the supplier for.",
+    "Duty tool reads the general, special and Section 301/232 rates for that code and computes landed cost for the shipment.",
+    "Compliance agent attaches the closest CROSS ruling as precedent and routes low-confidence or high-duty lines to a licensed broker queue."
+   ],
+   "eval": "Deterministic: exact match at 10, 8, 6 and 4 digits against the ruling code, NEED_INFO precision on deliberately thinned descriptions, JSON validity, code-in-candidate-list rate. LLM judge: does the deciding attribute appear in the description and actually separate the two codes. Compare Qwen3 base, tuned, and two frontier models with the same retrieved candidates.",
+   "risks": "Code drift: old rulings cite codes that later changed, so filter to codes valid in the current schedule. Contamination: CROSS rulings are public and probably in frontier training data, so test on rulings issued after the models' cutoffs. Retrieval quality caps accuracy: if the right code is not in the candidate list, no model can pick it, so report retrieval recall separately.",
+   "feasibility": "Good. Data is clean and already paired; teacher distillation only adds the deciding-attribute rationale, conditioned on the gold code and filtered by exact match. A Qwen3-1.7B QLoRA run on 2–5k examples fits a single A100 in under an hour.",
+   "scores": {
+    "data": 5,
+    "ft": 4,
+    "business": 5,
+    "agentic": 5,
+    "evidence": 4,
+    "fit": 4
+   },
+   "score_notes": {
+    "data": "54,558 public rulings with full text; licence tag missing but the source is US government.",
+    "ft": "Same-task evidence that fine-tuning helps (70B, 2.1% → 40%); no small-model result yet.",
+    "business": "Tariff exposure is a board-level cost in 2025–26; brokers already pay for classification tools.",
+    "agentic": "Live USITC API, duty maths, precedent lookup and a broker hand-off make a real workflow.",
+    "evidence": "Direct and recent (GPT-5-Thinking, 2025); a 2026 deterministic pipeline narrows the 6-digit gap.",
+    "fit": "Deterministic metric plus a judged rationale; the retrieval step must be identical across arms."
+   },
+   "id": "hts-tariff-classification",
+   "datasets": [
+    {
+     "name": "orlandowhite/hts-cross-rulings (CBP CROSS rulings with full ruling text)",
+     "url": "https://huggingface.co/datasets/orlandowhite/hts-cross-rulings",
+     "platform": "HF",
+     "size": "54,558 unique rulings (corrected 2026-10-30: the viewer's 80,844 adds a 26,286-row filtered subset to the full file); fields: ruling_id, date, short and full description, hts_code, reasoning, original ruling text",
+     "labels": "10-digit HTS code per ruling, plus the ruling's reasoning",
+     "license": "No licence tag on the card. Source is CBP rulings, US federal government works; confirm before republishing.",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "Largest public copy found. Rulings date back to the 2000s, so filter to codes still valid in the current HTS revision."
+    },
+    {
+     "name": "CBP CROSS rulings database (rulings.cbp.gov)",
+     "url": "https://rulings.cbp.gov/home",
+     "platform": "Gov",
+     "size": "unverified (third-party sources say about 220,000 rulings back to 1989; not read on CBP's own page)",
+     "labels": "Ruling text with the HTS classification it assigns",
+     "license": "not verified (public government database; terms not read)",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "Free search without an account, per third-party guides. Good source for building your own rows."
+    },
+    {
+     "name": "ATLAS CROSS rulings set (public mirror of flexifyai's dataset)",
+     "url": "https://huggingface.co/datasets/Dayanand314Krishna/cross_rulings_hts_dataset_for_tariffs",
+     "platform": "HF",
+     "size": "18,654 rows in chat format (card: 18,731 rulings, 2,992 codes, splits 18,254 / 200 / 200)",
+     "labels": "HTS code plus a reasoning path, in user/assistant messages",
+     "license": "apache-2.0 tag on the mirror card; the original flexifyai repo is no longer public (HF API refused anonymous access on 2026-10-29)",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "Use its 200-item test split to compare directly with the ATLAS paper's numbers."
+    },
+    {
+     "name": "USITC HTS REST search (agent tool)",
+     "url": "https://hts.usitc.gov/reststop/search?keyword=injection%20molding%20machine",
+     "platform": "Gov",
+     "size": "Live schedule; returns htsno, description, general/special/other duty rates",
+     "labels": "Tool, not training data",
+     "license": "US government",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "Tested 2026-10-29: keyword search returns JSON with duty rates. Keyword matching is loose, so the agent needs its own candidate ranking."
+    }
+   ],
+   "frontier_evidence": [
+    {
+     "source": "ATLAS: Benchmarking and Adapting LLMs for Global Trade via Harmonized Tariff Code Classification (Yuvraj & Devarakonda)",
+     "url": "https://arxiv.org/abs/2509.18400",
+     "year": 2025,
+     "models_tested": "GPT-5-Thinking, Gemini-2.5-Pro-Thinking, DeepSeek-R1 (05/28), GPT-OSS-120B, LLaMA-3.3-70B base, Atlas (LLaMA-3.3-70B fine-tuned). No Claude or Gemini 3 model tested.",
+     "finding": "10-digit fully correct: GPT-5-Thinking 25.0% (N=50/200), Gemini-2.5-Pro-Thinking 13.5%, DeepSeek-R1 2.5%, GPT-OSS-120B 1.5%, LLaMA-3.3-70B base 2.1%. 6-digit: GPT-5-Thinking 55.5%, Gemini 31.0%. The abstract's '+15' and '+27.5' gaps do not match the tables (Gemini gap is 26.5 from the tables); the paper gives no digit level for them.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": true
+    },
+    {
+     "source": "A Deterministic Agentic Workflow for HS Tariff Classification (arXiv 2605.14857)",
+     "url": "https://arxiv.org/abs/2605.14857",
+     "year": 2026,
+     "models_tested": "Qwen3.6-plus (frontier-side reference), Qwen3.6-27B-FP8 non-thinking; evaluated on HSCodeComp",
+     "finding": "Four-digit top-1 75.0% / top-3 91.5% and six-digit top-1 64.2% / top-3 78.3% for Qwen3.6-plus. Qwen3.6-27B-FP8 gives 84.2% four-digit and 77.4% six-digit top-1, but these measure agreement with the frontier model, not ground truth.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": true
+    },
+    {
+     "source": "HSCodeComp (ACL 2026)",
+     "url": "https://aclanthology.org/2026.acl-long.937.pdf",
+     "year": 2026,
+     "models_tested": "agents built on frontier models (names not read)",
+     "finding": "From a search snippet only: 632 products with expert 10-digit labels; strongest agent 46.8% against 95.0% for human experts. The PDF was too large for the fetch tool, so these numbers are unverified.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": false
+    }
+   ],
+   "counterevidence": [
+    {
+     "source": "arXiv 2605.14857, deterministic six-stage pipeline",
+     "url": "https://arxiv.org/abs/2605.14857",
+     "note": "A fixed pipeline that confines LLM calls to narrow stages, with an offline-engineered rule base, gets 64.2% six-digit top-1 with a frontier model. This suggests the gap can close without training, through structure and rules. It weakens the 'LLM cannot do it' premise and strengthens the case for a tool-backed SLM as one stage, not the whole system."
+    },
+    {
+     "source": "ATLAS vs GPT-5-Thinking at 6 digits",
+     "url": "https://arxiv.org/abs/2509.18400",
+     "note": "At 6 digits the fine-tuned 70B model leads GPT-5-Thinking by 2 points (57.5 vs 55.5). The fine-tuning gain is large only at 10 digits (40.0 vs 25.0)."
+    }
+   ],
+   "small_model_evidence": [
+    {
+     "source": "ATLAS (fine-tuned LLaMA-3.3-70B)",
+     "url": "https://arxiv.org/abs/2509.18400",
+     "year": 2025,
+     "finding": "Fine-tuning a 70B model lifts 10-digit fully-correct from 2.1% (base) to 40.0% and 6-digit from 20.7% to 57.5% on the 200-item test set. This is not small-model evidence: no model at 8B or below was reported. Note that Table 3 gives 20.7% for LLaMA base but N=29/200 is 14.5%; the paper is internally inconsistent here.",
+     "verified": true
+    },
+    {
+     "source": "2605.14857 Qwen3.6-27B-FP8 (non-thinking)",
+     "url": "https://arxiv.org/abs/2605.14857",
+     "year": 2026,
+     "finding": "A 27B open model inside a deterministic pipeline reaches 77.4% six-digit top-1 against the frontier model's output (agreement, not ground truth). Still above 8B and not fine-tuned.",
+     "verified": true
+    }
+   ],
+   "total": 27,
+   "experiment": {
+    "question": "Does a tuned Qwen3-1.7B, given the same retrieved candidates as a frontier model, choose the right 10-digit code more often than the prompted base model, and does any frontier prompt plateau below a reliability bar?",
+    "steps": [
+     "Build a fixed test set of 200 rulings issued after 2025-01-01 from orlandowhite/hts-cross-rulings (post-cutoff, to limit contamination), keeping only codes valid in the current schedule.",
+     "Build a candidate list of 8 codes per item: the gold code, its siblings under the same 6-digit subheading, and the USITC search's top hits. Freeze it, so every arm sees identical retrieval, and log how often the gold code is in the list.",
+     "Prompt-ceiling probe: two frontier families (for example Claude and GPT) × zero-shot, few-shot and structured-CoT prompts × the first 60 items. Record 10-digit exact match and NEED_INFO behavior.",
+     "Train one QLoRA run of Qwen3-1.7B on 2,000 older rulings with teacher rationales conditioned on the gold code and filtered by exact match (about 30–60 minutes on an A100).",
+     "Score base, tuned and the best frontier prompt on all 200 items with the same harness."
+    ],
+    "go": "Go if the best frontier prompt stays below about 70% at 10 digits with candidates provided, and the tuned 1.7B gains at least 15 points over its base. Stop if frontier plus candidates already exceeds about 85%.",
+    "cost": "About half a day and well under $50 of API and GPU time."
+   }
+  },
+  {
+   "rank": 2,
+   "name": "Reaction Product Predictor (SMILES)",
+   "industry": "Chemistry and drug discovery",
+   "verdict": "Strongest fine-tuning evidence and the cleanest open data, but reasoning-era frontier models have improved, so the prompt-ceiling gate is a real risk.",
+   "task": "Given reactant and reagent SMILES, return the major product as one valid SMILES string.",
+   "why_hard": "Exact product prediction needs learned reaction patterns, not facts a document could supply. In LlaSMol (2024) GPT-4 scored 1.6% and Claude 3 Opus 3.7% exact match on forward synthesis, against 63.3% for a fine-tuned 7B model. Reasoning models read SMILES much better than GPT-4 did, and no published GPT-5 or Claude 4-class number for this exact task was found.",
+   "business": "Medicinal and process chemists, CROs and electronic lab notebook vendors. Pharma treats structures as core IP, so an on-prem small model that never sends molecules to an external API is a selling point by itself.",
+   "ft_vs_rag": "Retrieval can find a similar past reaction, but applying the transformation to new reactants and writing a valid product string is a learned mapping. That is exactly what supervised examples teach and what a document cannot hand over.",
+   "behavior_spec": "Given reactant and reagent SMILES, the model returns exactly one RDKit-parsable SMILES for the major product and nothing else. Pass = parses, and canonical SMILES equals the dataset's product.",
+   "example_input": "CC(=O)O.OCC>[H+]>",
+   "example_output": "CCOC(C)=O",
+   "example_note": "Illustrative Fischer esterification in SMolInstruct's forward-synthesis format (reactants > reagents >). Pull real rows from the dataset files.",
+   "agentic_demo": [
+    "A chemist names target building blocks; a name-to-structure tool (PubChem or OPSIN) converts them to SMILES.",
+    "The reaction SLM proposes the product for each candidate reagent set.",
+    "RDKit validates each SMILES, checks atom balance and computes properties (molecular weight, logP, rule-of-five).",
+    "A planner agent runs the SLM as the one-step model inside a short forward-enumeration loop and ranks routes by property targets.",
+    "PubChem lookup flags known compounds and returns names and safety data for the chemist's review."
+   ],
+   "eval": "Deterministic: SMILES validity rate and canonical exact match against SMolInstruct's held-out forward-synthesis split; top-k match if sampling several. Compare base Qwen3, tuned Qwen3 and two reasoning frontier models with zero-shot, few-shot and CoT prompts.",
+   "risks": "Frontier reasoning models may clear a higher bar than 2024 numbers suggest, which would fail the gate. The brief warns against capability benchmarks, so frame the spec as reliability (always one valid SMILES, never prose) as well as accuracy. Data-efficiency curve may need tens of thousands of examples to show strong accuracy.",
+   "feasibility": "Medium. Data needs no teacher at all (labels are the products), which conflicts a little with the brief's distillation framing; a teacher could add short mechanism rationales. Tokenising SMILES on a general tokenizer works but trains slowly.",
+   "scores": {
+    "data": 5,
+    "ft": 5,
+    "business": 4,
+    "agentic": 4,
+    "evidence": 3,
+    "fit": 3
+   },
+   "score_notes": {
+    "data": "3M+ samples, 14 tasks, CC BY 4.0, no gate (HF API checked).",
+    "ft": "7B tuned 63.3% vs GPT-4 1.6%; a 4B result near 78% reported in a 2026 preprint (unverified).",
+    "business": "High-value users with a real privacy reason to run models on-prem.",
+    "agentic": "RDKit and PubChem make the outputs checkable and the loop tangible.",
+    "evidence": "Direct but dated (GPT-4, Claude 3); newer reasoning models improved on SMILES reading.",
+    "fit": "Perfect deterministic check, but it is a capability task and the gate is uncertain."
+   },
+   "id": "smiles-reaction-and-name-conversion",
+   "datasets": [
+    {
+     "name": "RDKit (agent tool and validator)",
+     "url": "https://www.rdkit.org/docs/",
+     "platform": "Other",
+     "size": "Open-source cheminformatics library",
+     "labels": "Tool: canonicalise SMILES, validity, atom balance",
+     "license": "BSD-3-Clause",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "Canonical-SMILES exact match is the deterministic metric."
+    },
+    {
+     "name": "SMolInstruct (osunlp/SMolInstruct)",
+     "url": "https://huggingface.co/datasets/osunlp/SMolInstruct",
+     "platform": "HF",
+     "size": "over 3M samples across 14 tasks; 695 MB (dataset card, read 2026-10-29)",
+     "labels": "Ground-truth products (forward_synthesis), precursors (retrosynthesis), name conversions (name_conversion-i2f, -i2s, -s2f, -s2i), plus molecule captioning, generation and ESOL/LIPO/BBBP/ClinTox/HIV/SIDER property tasks",
+     "license": "CC BY 4.0 (cc-by-4.0, per the dataset card)",
+     "license_verified": true,
+     "access_gate": "none",
+     "notes": "The card asks for high ethical standards and forbids uses that could cause harm. The dataset card does not use the term reaction prediction; forward_synthesis is the reaction-prediction task. Check the split and any leakage against USPTO-derived training sets before reporting numbers."
+    }
+   ],
+   "frontier_evidence": [
+    {
+     "source": "LlaSMol: Advancing Large Language Models for Chemistry with a Large-Scale, Comprehensive, High-Quality Instruction Tuning Dataset (SMolInstruct)",
+     "url": "https://arxiv.org/abs/2402.09391",
+     "year": 2024,
+     "models_tested": "GPT-4, Claude 3 Opus (zero-shot as reported in the table); fine-tuned LlaSMol (Mistral base); SoTA = Molecular Transformer (forward synthesis, retrosynthesis) and STOUT/RDKit (name conversion)",
+     "finding": "Forward synthesis EM: GPT-4 1.6, Claude 3 Opus 3.7, LlaSMol 63.3, SoTA 78.7. Retrosynthesis EM: GPT-4 0.0, Claude 3 Opus 1.1, LlaSMol 32.9, SoTA 47.0. Name conversion I2F EM: GPT-4 8.7, Claude 3 Opus 34.6, LlaSMol 87.9, SoTA 97.9. Numbers read from the arXiv v4 HTML table; the NC column header was garbled in extraction, so the column mapping is an inference.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": true
+    },
+    {
+     "source": "RetroDFM-R: Reasoning-Driven Retrosynthesis Prediction with Large Language Models via Reinforcement Learning",
+     "url": "https://arxiv.org/abs/2507.17448",
+     "year": 2025,
+     "models_tested": "Authors' model (RL-tuned LLM); the abstract was read, the baseline table was not",
+     "finding": "Authors report 60.4% accuracy without augmentation and 66.1% with the full inference setup on USPTO-50K. The abstract does not print GPT-5.2 or o4-mini numbers.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": true
+    },
+    {
+     "source": "RetroDFM-R baseline table (GPT-5.2 21.8%, o4-mini, DeepSeek-R1, Intern-S1 20.8%)",
+     "url": "https://arxiv.org/abs/2507.17448",
+     "year": 2025,
+     "models_tested": "gpt-5.2-2025-12-11, o4-mini, DeepSeek-R1-0526, Intern-S1 (per a search summary; not read on the page)",
+     "finding": "A search summary reports GPT-5.2 at 21.8% exact-match on USPTO-50K, the best frontier number it lists. Not confirmed on the fetched abstract.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": false
+    }
+   ],
+   "counterevidence": [
+    {
+     "source": "RetroDFM-R (2025), if the GPT-5.2 baseline is confirmed",
+     "url": "https://arxiv.org/abs/2507.17448",
+     "note": "If the unverified 21.8% holds, frontier reasoning models on USPTO-50K are far better than GPT-4 (0.0%) but still well below the 60.4% of a specialised RL-tuned model, which means the gap is narrower but not closed. Read the baseline table before citing either side."
+    },
+    {
+     "source": "ChemBench (Nature Chemistry, July 2025; arXiv preprint 2404.01475 'Are large language models superhuman chemists?')",
+     "url": "https://arxiv.org/abs/2404.01475",
+     "note": "Over 2,700 QA pairs (abstract read). The abstract says the best models outperform the best human chemists on average, but it prints no per-model scores, and it does not test SMILES generation. Use it as context only."
+    },
+    {
+     "source": "ChemIQ GPT-5 result (single-lab blog, 70.2%)",
+     "url": "",
+     "note": "Reported in a search summary only, not fetched, not verified. It tests counting and NMR-type questions, not reaction prediction. Do not cite it as evidence for this task."
+    },
+    {
+     "source": "Deterministic tools (RDKit, PubChem name lookup)",
+     "url": "",
+     "note": "Hypothesis, not verified in this pass. Name conversion between notations may be solvable by an RDKit or name-to-structure lookup tool, which would remove the need for a tuned model on that subtask. Test this before choosing the name-conversion subtask."
+    },
+    {
+     "source": "Assessing the Chemical Intelligence of LLMs (ChemIQ, arXiv 2505.07735)",
+     "url": "https://arxiv.org/abs/2505.07735",
+     "note": "Reasoning models read SMILES far better than 2024 models: o3-mini-high 89% on canonical-SMILES questions; reasoning models 50–57% overall vs 3–7% for non-reasoning models (search summary of the paper, not re-read). GPT-5 reported at 70.2% on ChemIQ (blog summary). The GPT-4 1.6% figure overstates today's gap."
+    }
+   ],
+   "small_model_evidence": [
+    {
+     "source": "LlaSMol (Mistral base, LoRA-tuned on SMolInstruct)",
+     "url": "https://arxiv.org/abs/2402.09391",
+     "year": 2024,
+     "finding": "The fine-tuned Mistral-based model beats GPT-4 and Claude 3 Opus on all tasks in the paper, but it stays below the task-specific SoTA on most metrics (for example, forward synthesis EM 63.3 vs 78.7). Parameter count not read on the fetched pages; the base is Mistral, which is 7B-class. No model at 1B-4B was found in this pass.",
+     "verified": true
+    },
+    {
+     "source": "BioMatrix (arXiv 2606.22138)",
+     "url": "https://arxiv.org/abs/2606.22138",
+     "year": 2026,
+     "finding": "Search summary: a 4B model reaches 77.94% exact match on SMolInstruct forward synthesis, near the 78.7 task-specific state of the art. Not read on the page.",
+     "verified": false
+    }
+   ],
+   "total": 24,
+   "experiment": {
+    "question": "Do current reasoning frontier models, with the best of three prompting strategies, still miss most forward-synthesis products, and does a tuned Qwen3-1.7B beat its base at returning one valid, correct SMILES?",
+    "steps": [
+     "Sample 200 forward-synthesis items from SMolInstruct's test split.",
+     "Prompt-ceiling probe on 60 items: two reasoning frontier models × zero-shot, few-shot and CoT. Score RDKit validity and canonical exact match.",
+     "Train Qwen3-1.7B with QLoRA on 5,000 training items (1 epoch).",
+     "Score base, tuned and best frontier on all 200."
+    ],
+    "go": "Go if the best frontier prompt stays below about 50% exact match and the tuned model beats base by 20+ points. Stop if a frontier model already exceeds about 70%.",
+    "cost": "About half a day; data needs no teacher."
+   }
+  },
+  {
+   "rank": 3,
+   "name": "XBRL Tagger: US-GAAP concepts for numbers in filings",
+   "industry": "Finance and accounting",
+   "verdict": "Huge open dataset and an unlimited live held-out source (EDGAR); an earlier review rejected it as knowledge-bound, so it only works if framed as choosing among retrieved candidates.",
+   "task": "Given a sentence from a 10-K or 10-Q with one numeric value marked, return the US-GAAP element that value should be tagged with, chosen from retrieved candidates.",
+   "why_hard": "Concepts differ by subtle accounting meaning (for example, RevenueFromContractWithCustomer vs Revenues, or amortization of intangibles vs depreciation). FinTagging (2025) measured concept-linking accuracy of 0.18 for GPT-4o and 0.19 for DeepSeek-V3 across the full taxonomy.",
+   "business": "Filers, filing agents (Workiva, Toppan Merrill, DFIN), auditors and data vendors. SEC comment letters cite tagging errors, and investors' data feeds inherit them.",
+   "ft_vs_rag": "Retrieval narrows 17,000+ concepts to a short list, but choosing among near-synonyms is a pattern learned from millions of filed examples. On FiNER-139's 139 frequent tags a fine-tuned encoder already reaches 82 micro-F1, so the generative SLM must show its value on the rationale and the candidate-choice framing, not raw tag accuracy.",
+   "behavior_spec": "Given a sentence, a marked numeric span and up to 10 retrieved US-GAAP candidates, the model returns one JSON object with one candidate element (or NONE when no candidate fits) and the phrase in the sentence that justifies it. Pass = valid JSON, element from the list, and match with the filer's tag.",
+   "example_input": "Sentence: 'Amortization expense for intangible assets was $4.2 million for the year ended December 31, 2023.' Marked span: 4.2. Candidates: AmortizationOfIntangibleAssets, Depreciation, DepreciationDepletionAndAmortization, FiniteLivedIntangibleAssetsAccumulatedAmortization.",
+   "example_output": "{\"concept\": \"AmortizationOfIntangibleAssets\", \"evidence\": \"Amortization expense for intangible assets\"}",
+   "example_note": "Illustrative, in the style of FiNER-139 (token-level tags over 10-K sentences).",
+   "agentic_demo": [
+    "A filing-review agent pulls a draft or recent 10-Q and splits it into sentences with numeric spans.",
+    "A taxonomy retriever proposes candidate US-GAAP elements for each span.",
+    "The tagging SLM picks one element or NONE and cites the phrase.",
+    "A validator cross-checks against the SEC companyfacts API: same company, same period, same element and value in earlier filings.",
+    "Mismatches become a reviewer queue with the suggested fix, the evidence phrase and the precedent filing."
+   ],
+   "eval": "Deterministic: micro- and macro-F1 against filer tags on FiNER-139's test split, plus a held-out set built from EDGAR filings newer than the models. LLM judge checks that the cited phrase supports the concept. Same retrieved candidates for every arm.",
+   "risks": "Encoders already do well on the 139-tag set, so a reviewer may ask why not BERT. The full-taxonomy gap may be mostly knowledge, which retrieval fixes. Filers' own tags are noisy ground truth.",
+   "feasibility": "Good on data (1.1M rows, CC BY-SA 4.0, ShareAlike applies to a republished dataset). Candidate construction from the taxonomy takes a day.",
+   "scores": {
+    "data": 5,
+    "ft": 3,
+    "business": 5,
+    "agentic": 4,
+    "evidence": 4,
+    "fit": 3
+   },
+   "score_notes": {
+    "data": "1.1M labelled sentences, CC BY-SA 4.0, no gate (HF API checked); EDGAR gives endless fresh data.",
+    "ft": "Encoders already strong on 139 tags; generative SLM value must come from the candidate-choice framing.",
+    "business": "Regulated, recurring, high-volume work with paying vendors.",
+    "agentic": "EDGAR companyfacts verification makes a credible review loop.",
+    "evidence": "Direct (GPT-4o 0.18 concept linking, 2025), but partly knowledge-bound.",
+    "fit": "Deterministic metric; the earlier explorer's rejection is the risk to answer up front."
+   },
+   "id": "xbrl-us-gaap-tagging",
+   "datasets": [
+    {
+     "name": "SEC EDGAR XBRL APIs (companyfacts, frames)",
+     "url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces",
+     "platform": "Gov",
+     "size": "Every XBRL fact filed since 2009",
+     "labels": "Filed concept per value: fresh ground truth for held-out tests",
+     "license": "US government; SEC fair-access rules (declared User-Agent, rate limit)",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "Lets you build a held-out set from filings newer than any model's training data."
+    },
+    {
+     "name": "FiNER-139 (nlpaueb/finer-139)",
+     "url": "https://huggingface.co/datasets/nlpaueb/finer-139",
+     "platform": "HF",
+     "size": "1,121,256 rows (train 900,384; validation 112,494; test 108,378)",
+     "labels": "139 XBRL entity types, token-level IOB2 (279 token labels); gold tags from auditors, with some discrepancies noted on the card",
+     "license": "cc-by-sa-4.0",
+     "license_verified": true,
+     "access_gate": "none",
+     "notes": "Sentences drawn from about 10k SEC filings; regex extraction of notes. Covers only the 139 most frequent entity types, not the full taxonomy."
+    },
+    {
+     "name": "FinTagging benchmark (TheFinAI/fintagging)",
+     "url": "https://github.com/The-FinAI/FinTagging",
+     "platform": "GitHub",
+     "size": "FinCL has 52,572 query-answer pairs over 17,388 concepts (paper text, from search snippet; the full-page read gave 17,688 concepts, so the two disagree)",
+     "labels": "FinNI numeric entities with types; FinCL gold US-GAAP concept",
+     "license": "not verified (the arXiv page is CC BY 4.0; the dataset licence was not stated on the page read)",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "HF collection https://huggingface.co/collections/TheFinAI/fintagging linked from the paper; not opened."
+    }
+   ],
+   "frontier_evidence": [
+    {
+     "source": "FinTagging: Benchmarking LLMs for Extracting and Structuring Financial Information (arXiv 2505.20650)",
+     "url": "https://arxiv.org/abs/2505.20650",
+     "year": 2025,
+     "models_tested": "GPT-4o, DeepSeek-V3, Llama-4-Scout-17B-16E, Llama-3.3-70B, DeepSeek-R1-Distill-Qwen-32B, Qwen3-32B, gemma-2-27b, Qwen3-14B, Llama-3.1-8B, Llama-3.2-3B, Qwen3-1.7B, Qwen3-0.6B, Fino1-8B (zero-shot); fine-tuned BERT-large, FinBERT, SECBERT as baselines",
+     "finding": "FinCL accuracy: GPT-4o 0.1829, DeepSeek-V3 0.1889, Qwen3-32B 0.1277, Llama-3.3-70B 0.1318. FinNI F1: GPT-4o 0.5397, DeepSeek-V3 0.6932. End-to-end pipeline accuracy: GPT-4o 0.1052, DeepSeek-V3 0.1074, Qwen3-32B 0.1127. Fine-tuned SECBERT Micro-F1 0.1779 vs DeepSeek-V3 0.1162, but Macro-F1 0.0203 vs DeepSeek-V3 0.0659.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": true
+    },
+    {
+     "source": "FINAUDITING (arXiv 2510.08886)",
+     "url": "https://arxiv.org/abs/2510.08886",
+     "year": 2025,
+     "models_tested": "LLMs, including DeepSeek-V3 (per search snippet)",
+     "finding": "XBRL auditing (detecting inconsistent tags), not tagging. Search snippet only: DeepSeek-V3 Hit Rate 11.89%, Recall 8.83%, Macro-F1 9.35%. Not read on the page.",
+     "directness": "analogous",
+     "level": "demonstrated",
+     "verified": false
+    }
+   ],
+   "counterevidence": [
+    {
+     "source": "Review verdict 'mostly missing knowledge of the taxonomy'",
+     "url": "https://arxiv.org/abs/2505.20650",
+     "note": "Partly disputed. FinTagging attributes the FinCL failure to fine-grained disambiguation among close taxonomy entries, not to unknown concepts. Its search-snippet summary also says accuracy stays low even with perfect candidate retrieval, so a lookup tool alone does not fix it. No ablation in the read material separates 'missing knowledge' from 'disambiguation difficulty'. The evidence supports 'hard to disambiguate', and it does not show that a tuned SLM would beat frontier models."
+    },
+    {
+     "source": "Deterministic taxonomy lookup",
+     "url": "https://arxiv.org/abs/2505.20650",
+     "note": "A retrieve-then-rank tool over the US-GAAP taxonomy is a plausible counter to the brief's 'RAG would not fix it' test. FinTagging's end-to-end result with perfect retrieval still reads as low, which is the evidence for the brief's test. Not yet tested here."
+    }
+   ],
+   "small_model_evidence": [
+    {
+     "source": "FiNER-139 (Loukas et al., ACL 2022): SEC-BERT variants fine-tuned",
+     "url": "https://arxiv.org/abs/2203.06482",
+     "year": 2022,
+     "finding": "Test entity-level Micro-F1 / Macro-F1: BiLSTM (words) 77.3 / 73.8; BERT+CRF 78.0 / 75.2; SEC-BERT-shape 82.1 / 80.1; SEC-BERT-num 80.4 / 78.9. These are encoder models (about 110M parameters), with no frontier LLM comparison. Table 4 vs Table 5 disagree on SEC-BERT micro-F1 (75.7 vs 78.8).",
+     "verified": true
+    },
+    {
+     "source": "FinTagging: fine-tuned SECBERT vs zero-shot LLMs",
+     "url": "https://arxiv.org/abs/2505.20650",
+     "year": 2025,
+     "finding": "Fine-tuned SECBERT beats DeepSeek-V3 on Micro-F1 (0.1779 vs 0.1162) and loses on Macro-F1 (0.0203 vs 0.0659). A small model wins only on the frequent-label score, so the result is mixed.",
+     "verified": true
+    }
+   ],
+   "total": 24,
+   "experiment": {
+    "question": "With identical retrieved candidates, does a tuned Qwen3-1.7B pick the filer's concept more often than its base, and do frontier models plateau below a bar on the confusable pairs?",
+    "steps": [
+     "Take 200 FiNER-139 test sentences, focused on the most confusable tag pairs, plus 50 sentences from 2026 EDGAR filings tagged by the filer.",
+     "Build 10 candidates per item from the taxonomy (gold plus nearest labels by embedding) and freeze them.",
+     "Prompt-ceiling probe on 60 items across two frontier families × three strategies.",
+     "Train Qwen3-1.7B with QLoRA on 5,000 training sentences reformatted to the candidate-choice JSON.",
+     "Score all arms; also run a fine-tuned SEC-BERT baseline to answer 'why not an encoder'."
+    ],
+    "go": "Go if frontier stays below about 75% on confusable pairs and the tuned model beats base by 15+ points while matching the encoder.",
+    "cost": "About a day, including candidate construction."
+   }
+  },
+  {
+   "rank": 4,
+   "name": "Medical Coder: ICD-10-CM from clinical notes",
+   "industry": "Healthcare revenue cycle",
+   "verdict": "Classic SLM case (privacy, volume, documented frontier failures), but MIMIC-IV credentialing takes days and the open alternative is small and Spanish.",
+   "task": "Given a discharge summary, return the ICD-10-CM codes it supports, each with the supporting phrase.",
+   "why_hard": "Over 70,000 codes with specificity rules (laterality, episode, combination codes). Soroush et al. (NEJM AI, 2024) found GPT-4 at 33.9% exact match on ICD-10-CM code descriptions, and all models below 50%.",
+   "business": "Hospitals, coding vendors and payers. Coding drives reimbursement and audit risk, and PHI makes an on-prem small model attractive.",
+   "ft_vs_rag": "The code table can be retrieved, but which codes a note supports, at what specificity, follows coding guidelines learned from coded notes.",
+   "behavior_spec": "For each note, the model returns JSON listing only codes from the candidate set with a quoted supporting span; it never emits a code without a span. Pass = valid codes, each span present in the note, and F1 against coder labels.",
+   "example_input": "Discharge summary excerpt: 'Admitted with acute exacerbation of COPD; type 2 diabetes, well controlled on metformin.'",
+   "example_output": "[{\"code\": \"J44.1\", \"span\": \"acute exacerbation of COPD\"}, {\"code\": \"E11.9\", \"span\": \"type 2 diabetes, well controlled\"}]",
+   "example_note": "Illustrative.",
+   "agentic_demo": [
+    "The SLM proposes codes with spans from a note.",
+    "A code-table tool validates each code and fetches descriptions and Excludes notes.",
+    "A rules tool flags missing specificity and conflicts.",
+    "The agent writes a coder query back to the clinician and posts the claim draft."
+   ],
+   "eval": "Micro/macro F1 on MIMIC-IV ICD-10 labels (top-50 codes subset for a short project); span-grounding rate.",
+   "risks": "PhysioNet credentialing plus CITI training before any data; MIMIC data cannot go to external APIs under its licence, which blocks frontier-model ablation on the real notes.",
+   "feasibility": "Poor for this week: access gate and the licence's limits on sending notes to hosted frontier models.",
+   "scores": {
+    "data": 2,
+    "ft": 4,
+    "business": 5,
+    "agentic": 4,
+    "evidence": 4,
+    "fit": 2
+   },
+   "score_notes": {
+    "data": "MIMIC-IV credentialed; CodiEsp is 1,000 Spanish cases.",
+    "ft": "Fine-tuned models clearly beat prompted ones in published work, though mostly above 4B.",
+    "business": "Large, recurring spend with PHI constraints.",
+    "agentic": "Code tables, edits and clinician queries make a real loop.",
+    "evidence": "GPT-4 33.9% (2024), on code lookup rather than note coding.",
+    "fit": "Access gate and data-use rules clash with the frontier ablation."
+   },
+   "id": "icd10-coding-from-clinical-text",
+   "datasets": [
+    {
+     "name": "MIMIC-IV (PhysioNet)",
+     "url": "https://physionet.org/content/mimiciv/",
+     "platform": "Other",
+     "size": "364,627 unique individuals and 546,028 hospitalizations (as printed on the page; the page attributes these counts to v3.0, while the page header says v3.1)",
+     "labels": "ICD-9 and ICD-10 diagnosis and procedure codes attached to hospital stays (structured billing codes); clinical notes are in MIMIC-IV-Note, a separate module",
+     "license": "PhysioNet Credentialed Health Data License 1.5.0",
+     "license_verified": true,
+     "access_gate": "credentialed",
+     "notes": "Requires PhysioNet credentialing, CITI 'Data or Specimens Only Research' training, and signing the PhysioNet Credentialed Health Data Use Agreement 1.5.0. Notes live in a separate MIMIC-IV-Note module; check its access terms before planning. Turnaround for credentialing is not verified here."
+    },
+    {
+     "name": "CodiEsp (CLEF eHealth 2020 corpus, Spanish clinical cases coded in CIE-10)",
+     "url": "https://zenodo.org/records/3837305",
+     "platform": "Zenodo",
+     "size": "1,000 clinical cases: 500 train, 250 development, 250 test (Zenodo record, v1.4)",
+     "labels": "Manually assigned ICD-10-CM (CIE-10) diagnosis codes and procedure codes, plus evidence spans (CodiEsp-X)",
+     "license": "Creative Commons Attribution 4.0 International (license field on the Zenodo record)",
+     "license_verified": true,
+     "access_gate": "none",
+     "notes": "Spanish-language. The record carries a 2019 copyright line from a Spanish government secretariat, but lists no access limits. Use the newest record version. Good for a fast open pilot; not an English US-coding proxy."
+    }
+   ],
+   "frontier_evidence": [
+    {
+     "source": "Large Language Models Are Poor Medical Coders: Benchmarking of Medical Code Querying (Soroush et al., NEJM AI)",
+     "url": "https://ai.nejm.org/doi/full/10.1056/AIdbp2300040",
+     "year": 2024,
+     "models_tested": "GPT-4, GPT-3.5, Gemini Pro, Llama-2-70b Chat",
+     "finding": "GPT-4 exact match: ICD-9-CM 45.9%, ICD-10-CM 33.9%, CPT 49.8%. The authors report all models below 50%. Over 27,000 unique diagnosis and procedure codes. Numbers read from a press release (EurekAlert, 2024-04-22); the NEJM AI page returned HTTP 403 and was not read.",
+     "directness": "partial",
+     "level": "demonstrated",
+     "verified": true
+    },
+    {
+     "source": "Domain-specific fine-tuned LLMs for ICD-10 coding (Hou et al., npj Health Systems, 2025)",
+     "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12045799/",
+     "year": 2025,
+     "models_tested": "Fine-tuned LLMs; GPT-4o mini and Llama models are named in a search summary (not confirmed)",
+     "finding": "Search summary: fine-tuning on 74,260 ICD-10 code-description pairs, then extra training on lexical variants, gave 69.20% exact match and 87.16% category match on real clinical notes. Not read on the page; treat as a lead to check.",
+     "directness": "direct",
+     "level": "plausible",
+     "verified": false
+    }
+   ],
+   "counterevidence": [
+    {
+     "source": "Rollman et al., Practical Design and Benchmarking of Generative AI Applications for Surgical Billing and Coding (arXiv 2501.05479, Jan 2025)",
+     "url": "https://arxiv.org/abs/2501.05479",
+     "note": "Fine-tuned Phi-3 Medium reached ICD-10 recall 72% and precision 72% on institutional operative-report data (read on abstract page). Abstract says both fine-tuned models performed better than or as well as GPT-4o, but no GPT-4o number is printed. Dataset size not stated. Shows a small tuned model can match a frontier model on a narrow, single-site task."
+    },
+    {
+     "source": "Fine-tuning coverage limits (2026 preprint, cited by a search summary, not read)",
+     "url": "",
+     "note": "A search summary says MIMIC-IV covers only about 10% of the roughly 70,000 ICD-10-CM codes. If confirmed, a tuned model will not learn the rare codes, so the eval must report per-code-frequency results."
+    }
+   ],
+   "small_model_evidence": [
+    {
+     "source": "Rollman et al. (arXiv 2501.05479)",
+     "url": "https://arxiv.org/abs/2501.05479",
+     "year": 2025,
+     "finding": "A fine-tuned Phi-3 Medium at ICD-10 recall 72% and precision 72% on the institution's own data. Phi-3 Medium is about 14B, which is above the 1B-4B target, so this is evidence for a tuned mid-size model, not for a 4B model. Phi-3 Mini was also tested; numbers for it were not on the abstract page.",
+     "verified": true
+    }
+   ],
+   "total": 21
+  },
+  {
+   "rank": 5,
+   "name": "Patent Router: CPC subclass from claims",
+   "industry": "Intellectual property",
+   "verdict": "Good data and a clear routing use case; evidence says encoders already beat LLMs here, which weakens the generative-SLM story.",
+   "task": "Given a patent application's abstract and first claim, return its main CPC subclass and group.",
+   "why_hard": "Thousands of groups with fine technical boundaries. IPBench (2025) measured exact CPC accuracy of 3.3% for GPT-4o and 9.5% for DeepSeek-V3, but subclass accuracy of 62–65%.",
+   "business": "Patent offices, law firms and IP analytics vendors use it to route applications and scope prior-art searches.",
+   "ft_vs_rag": "Scheme definitions are retrievable; which group examiners actually assign is a learned pattern.",
+   "behavior_spec": "Model returns one CPC group from the official scheme plus two alternates, as JSON; pass = valid codes and exact match on the main group.",
+   "example_input": "Abstract and claim 1 of a lithium-ion cell with a ceramic-coated separator.",
+   "example_output": "{\"main\": \"H01M 50/446\", \"alternates\": [\"H01M 10/0525\", \"H01M 50/431\"]}",
+   "example_note": "Illustrative.",
+   "agentic_demo": [
+    "SLM proposes CPC groups.",
+    "CPC scheme tool confirms and fetches titles.",
+    "Prior-art agent searches patents in those groups.",
+    "Router assigns the art unit and drafts a search report."
+   ],
+   "eval": "Exact and hierarchical accuracy on HUPD held-out years.",
+   "risks": "HUPD licence statements conflict (CC BY-SA vs NC); encoder baselines may beat a generative SLM.",
+   "feasibility": "Medium: 125 GB raw data needs subsetting.",
+   "scores": {
+    "data": 4,
+    "ft": 3,
+    "business": 4,
+    "agentic": 4,
+    "evidence": 3,
+    "fit": 3
+   },
+   "score_notes": {
+    "data": "Millions of applications; licence conflict unresolved.",
+    "ft": "A 2026 study found encoders beat a fine-tuned 9B LLM.",
+    "business": "Routing and prior-art search are paid workflows.",
+    "agentic": "Natural search-and-route loop.",
+    "evidence": "Exact-group failure is real; subclass level is decent already.",
+    "fit": "Deterministic metric; encoder baseline invites the 'why an LLM' question."
+   },
+   "id": "patent-cpc-classification",
+   "datasets": [
+    {
+     "name": "HUPD (HUPD/hupd)",
+     "url": "https://huggingface.co/datasets/HUPD/hupd",
+     "platform": "HF",
+     "size": "Card gives 125 GB total file size; no record count stated on the card. Filings from Jan 2004 to Dec 2018 (about 4.5M per the paper's text, not read on the card).",
+     "labels": "main_cpc_label, cpc_labels, main_ipcr_label, ipcr_labels, decision (34 fields per application)",
+     "license": "Conflict: YAML says cc-by-sa-4.0; the card body says 'released under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International'. Treat as unresolved.",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "Dataset viewer disabled; loading needs Python code execution. The 'sample' config is small and 'all' is the full set."
+    },
+    {
+     "name": "USPTO-70k (named in search snippets for 2601.23200)",
+     "url": "https://arxiv.org/abs/2601.23200",
+     "platform": "Other",
+     "size": "unverified",
+     "labels": "CPC subclass",
+     "license": "not verified",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "The fetched 2601.23200 abstract page does not name the dataset, so the USPTO-70k link is unconfirmed."
+    }
+   ],
+   "frontier_evidence": [
+    {
+     "source": "IPBench: Benchmarking the Knowledge of LLMs in Intellectual Property (arXiv 2504.15524 v2, 29 Sep 2025)",
+     "url": "https://arxiv.org/html/2504.15524v2",
+     "year": 2025,
+     "models_tested": "17 LLMs including GPT-4o, GPT-4o-mini, DeepSeek-V3, DeepSeek-R1, Qwen2.5-72B, Llama3.1-70B, QwQ-32B; zero-shot, few-shot and CoT",
+     "finding": "Table 4, CPC exact / CPC subclass: DeepSeek-V3 9.5 / 65.2; DeepSeek-R1 8.5 / 63.2; GPT-4o 3.3 / 62.0; GPT-4o-mini 0.5 / 52.7. IPC exact DeepSeek-R1 10.8. These are not HUPD results.",
+     "directness": "analogous",
+     "level": "demonstrated",
+     "verified": true
+    },
+    {
+     "source": "Large Language Models, Encoder Architectures and Hybrid Approaches for Patent Classification (arXiv 2601.23200)",
+     "url": "https://arxiv.org/abs/2601.23200",
+     "year": 2026,
+     "models_tested": "BERT-for-Patents and other encoders; open LLMs including a fine-tuned Qwen3.5-9B (LoRA details not stated on the page)",
+     "finding": "Abstract says the best encoder outperforms the best LLM and that encoders use one to two orders of magnitude less energy at inference. No accuracy or macro-F1 numbers were in the page read. Search snippet says encoders win on frequent CPC subclasses and LLMs on rare ones.",
+     "directness": "direct",
+     "level": "plausible",
+     "verified": false
+    }
+   ],
+   "counterevidence": [
+    {
+     "source": "arXiv 2601.23200 (Jan 2026)",
+     "url": "https://arxiv.org/abs/2601.23200",
+     "note": "A fine-tuned 9B LLM is beaten by a fine-tuned encoder on aggregate CPC results. The tuned-LLM route is weaker here, which lowers the case for an SLM over a classical classifier. Numbers unread."
+    },
+    {
+     "source": "IPBench CPC subclass column",
+     "url": "https://arxiv.org/html/2504.15524v2",
+     "note": "At subclass level GPT-4o reaches 62.0%, so frontier models are far better at the broad level than at exact codes. Exact-match is where a tuned model has room to help."
+    }
+   ],
+   "small_model_evidence": [
+    {
+     "source": "arXiv 2601.23200: fine-tuned Qwen3.5-9B and encoders",
+     "url": "https://arxiv.org/abs/2601.23200",
+     "year": 2026,
+     "finding": "Encoder models beat the best LLM on aggregate CPC subclass results. The small encoder route is supported, but the numbers were not read.",
+     "verified": false
+    }
+   ],
+   "total": 21
+  },
+  {
+   "rank": 6,
+   "name": "Log Template Parser",
+   "industry": "SRE and observability",
+   "verdict": "Excellent open data, but frontier and classic parsers already do well, so the gate is hard to pass.",
+   "task": "Given a raw log line, return its event template with every variable masked.",
+   "why_hard": "Deciding which tokens are variables needs system-specific conventions. ChatGPT reached PA 84.2 in LLMParser (2023); newer papers report GPT-3.5 near 88 PA on Loghub-2.0.",
+   "business": "Observability vendors and platform teams: templates drive alert grouping, cost control and anomaly detection at high volume, where a small local model saves money.",
+   "ft_vs_rag": "Retrieving similar lines helps (LILAC); tuning teaches the masking convention consistently.",
+   "behavior_spec": "Model returns only the template, with every variable replaced by <*> and constants unchanged. Pass = exact template match with the Loghub-2.0 annotation.",
+   "example_input": "081109 203615 148 INFO dfs.DataNode$PacketResponder: PacketResponder 1 for block blk_38865049064139660 terminating",
+   "example_output": "PacketResponder <*> for block <*> terminating",
+   "example_note": "HDFS line in Loghub style; illustrative.",
+   "agentic_demo": [
+    "Collector streams logs.",
+    "SLM templates each new line shape.",
+    "Counter flags new or spiking templates.",
+    "Incident agent pulls related deploys and drafts a summary."
+   ],
+   "eval": "Grouping accuracy and parsing accuracy on Loghub-2.0's 14 systems.",
+   "risks": "Drain and LLM-with-cache parsers are strong baselines; the earlier explorer already covered a similar 'Template Lock' idea.",
+   "feasibility": "Good on data; weak on the gate.",
+   "scores": {
+    "data": 5,
+    "ft": 3,
+    "business": 4,
+    "agentic": 4,
+    "evidence": 2,
+    "fit": 3
+   },
+   "score_notes": {
+    "data": "14 systems, millions of annotated lines, CC BY 4.0.",
+    "ft": "Small tuned models are competitive, not clearly better.",
+    "business": "Real volume and cost pressure.",
+    "agentic": "Incident triage loop is natural.",
+    "evidence": "Frontier models already score in the high 80s.",
+    "fit": "Deterministic metric; plateau likely too high."
+   },
+   "id": "log-template-parsing",
+   "datasets": [
+    {
+     "name": "Loghub-2.0 (14 system log collections, annotated templates)",
+     "url": "https://github.com/logpai/loghub-2.0",
+     "platform": "GitHub",
+     "size": "14 datasets, 3,601,187 annotated logs on average per dataset, 249.1 templates on average (GitHub README table, fetched 2026-10-29); full data on Zenodo, 965.6 MB in 14 zip files",
+     "labels": "Ground-truth template per line (EventTemplate); a sample of 2k lines per system exists as Loghub-2k",
+     "license": "CC BY 4.0 (Zenodo record 8275861, fetched). The GitHub page links a LICENSE file but its text was not read.",
+     "license_verified": true,
+     "access_gate": "none",
+     "notes": "Zenodo record 8275861 published 2023-08-23. The GitHub README table lists 14 rows, so 14 is the count used here. The ISSTA 2024 LogPub paper is the citation the licence asks for. Log anomaly labels were not checked in this pass."
+    },
+    {
+     "name": "Loghub-2k (2,000-line samples per system)",
+     "url": "https://github.com/logpai/loghub",
+     "platform": "GitHub",
+     "size": "2k lines per system (not re-read in this pass)",
+     "labels": "Ground-truth templates",
+     "license": "Not verified in this pass",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "Smaller sample for quick iteration. Only the Loghub-2.0 page was fetched."
+    }
+   ],
+   "frontier_evidence": [
+    {
+     "source": "LILAC: Log Parsing using LLMs with Adaptive Parsing Cache (FSE 2024)",
+     "url": "https://arxiv.org/abs/2310.01796",
+     "year": 2023,
+     "models_tested": "ChatGPT (gpt-3.5-turbo-0613), Davinci, Curie. No GPT-4 or newer model reported.",
+     "finding": "Average over datasets, from Table 4 (arXiv HTML): ChatGPT GA 92.7 / PA 84.2; Davinci GA 91.9 / PA 87.1; Curie GA 90.1 / PA 77.8.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": true
+    },
+    {
+     "source": "A Comparative Study on Large Language Models for Log Parsing (ESEM 2024)",
+     "url": "https://arxiv.org/html/2409.02474v1",
+     "year": 2024,
+     "models_tested": "GPT-3.5 (gpt-3.5-turbo-0613), Claude 2.1, Llama 2 7B, CodeLlama 7B, Zephyr 7B, CodeUp 13B; zero-shot and four-shot",
+     "finding": "Few-shot, 1,354 unique messages from LogHub: CodeLlama 586 correct, GPT-3.5 531, Claude 2.1 439 (counts from Table 3). The abstract's 10% gap is 586 against 531. These are template-extraction counts, not F1.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": true
+    },
+    {
+     "source": "LibreLog (arXiv 2408.01585) reports LILAC baseline on Loghub-2.0",
+     "url": "https://arxiv.org/html/2408.01585v3",
+     "year": 2024,
+     "models_tested": "LILAC run with Llama3-8B, because the authors replaced ChatGPT for a fair comparison",
+     "finding": "Average on LogHub-2.0 for LILAC: GA 0.8289, PA 0.6783 (Table I). This is a baseline from a competing paper, and the authors are the ones who built LibreLog.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": true
+    },
+    {
+     "source": "Small is Beautiful: A Practical and Efficient Log Parsing Framework (arXiv 2601.22590)",
+     "url": "https://arxiv.org/html/2601.22590v1",
+     "year": 2026,
+     "models_tested": "GPT-3.5 for the reference row; Gemini-1.5-Flash-8B (default), LLaMA-3-8B-Instruct and Qwen3 4B/8B/14B for robustness",
+     "finding": "Average on Loghub-2.0 (Table 3): GPT-3.5 GA 92.3 / PA 88.0; Gemini-8B GA 92.2 / PA 88.9. The paper's text gives a different GA figure from its table. The table is used here.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": true
+    }
+   ],
+   "counterevidence": [
+    {
+     "source": "LibreLog (arXiv 2408.01585), Table I",
+     "url": "https://arxiv.org/html/2408.01585v3",
+     "note": "Non-LLM Drain scores GA 0.8432 average on LogHub-2.0, above LILAC (0.8289), though its PA is 0.4681. An LLM is not needed to get grouping right; the LLM mainly helps PA. This weakens the claim that frontier LLMs are unreliable at grouping."
+    },
+    {
+     "source": "Small is Beautiful (arXiv 2601.22590, Jan 2026)",
+     "url": "https://arxiv.org/html/2601.22590v1",
+     "note": "A fine-tuned or prompted 8B-class model reaches GA about 92 on Loghub-2.0, close to GPT-3.5. Once a small model is adequate, the frontier gap is small, so the case for fine-tuning must rest on PA, cost and latency, not on accuracy above frontier."
+    },
+    {
+     "source": "DivLog (training-free in-context parsing, 2023) as reported in a 2025 comparison",
+     "url": "",
+     "note": "Reported figures of 98.1% PA on average for GPT-3 (not re-read). Unverified; if correct, retrieved examples close most of the gap, which means RAG-style fixes may suffice."
+    }
+   ],
+   "small_model_evidence": [
+    {
+     "source": "LibreLog: open 8B model with unsupervised parsing",
+     "url": "https://arxiv.org/html/2408.01585v3",
+     "year": 2024,
+     "finding": "Llama3-8B-based LibreLog: average GA 0.8720, PA 0.8538 on LogHub-2.0 (Table I), above the LILAC baseline run with the same model (GA 0.8289, PA 0.6783). This is an unsupervised, open-weight 8B result from the paper's authors.",
+     "verified": true
+    },
+    {
+     "source": "LLMParser (fine-tuned T5-base, cited as a baseline in LibreLog Table I)",
+     "url": "https://arxiv.org/html/2408.01585v3",
+     "year": 2024,
+     "finding": "A fine-tuned small model with the lowest grouping in that table: GA 0.6345, PA 0.7514 average on LogHub-2.0. This is a warning: a fine-tuned small model can parse well and still group poorly.",
+     "verified": true
+    }
+   ],
+   "total": 21
+  },
+  {
+   "rank": 7,
+   "name": "Work-Order Failure-Mode Coder",
+   "industry": "Manufacturing and asset maintenance",
+   "verdict": "Strong business story and early evidence that fine-tuning helps, but the labelled data is tiny.",
+   "task": "Given a technician's terse work-order note, return the ISO 14224-style failure mode.",
+   "why_hard": "Notes are abbreviated shop-floor shorthand ('pmp brg hot, rplcd'). Fine-tuned GPT-3.5 reached F1 0.80 vs 0.46 out of the box (2023).",
+   "business": "Plants and utilities use failure codes for reliability analytics; most notes are uncoded.",
+   "ft_vs_rag": "Shorthand and code conventions are learned from examples, not looked up.",
+   "behavior_spec": "Model returns one failure-mode code from the fixed list; pass = exact match.",
+   "example_input": "pump 3 brg running hot, replaced brg",
+   "example_output": "Overheating",
+   "example_note": "Illustrative.",
+   "agentic_demo": [
+    "CMMS export feeds notes.",
+    "SLM codes each note.",
+    "Reliability tool computes failure rates per asset.",
+    "Agent proposes PM schedule changes."
+   ],
+   "eval": "Accuracy and macro-F1 on FMC-MWO2KG (62-item test).",
+   "risks": "Only about 600 labelled items; tests that small cannot separate models by a few points.",
+   "feasibility": "Needs heavy teacher-generated data with weak ground truth.",
+   "scores": {
+    "data": 2,
+    "ft": 4,
+    "business": 4,
+    "agentic": 4,
+    "evidence": 2,
+    "fit": 3
+   },
+   "score_notes": {
+    "data": "Hundreds of examples; MaintIE has entities, not failure codes.",
+    "ft": "GPT-3.5 tuned 0.80 vs 0.46.",
+    "business": "Clear reliability-engineering buyer.",
+    "agentic": "CMMS loop is practical.",
+    "evidence": "GPT-3.5 only.",
+    "fit": "Small test set limits the statistics."
+   },
+   "id": "maintenance-failure-mode-coding",
+   "datasets": [
+    {
+     "name": "FMC-MWO2KG (failure-mode classification of maintenance observations)",
+     "url": "https://astro.paperswithcode.com/dataset/fmc-mwo2kg",
+     "platform": "Other",
+     "size": "502 training, 62 validation, 62 test (paperswithcode listing; not verified against the dataset repo, the fetch failed on SSL)",
+     "labels": "22 ISO 14224 failure-mode codes, one per observation (expert-labelled)",
+     "license": "Apache 2.0 (per a search summary of the paperswithcode listing; not read directly)",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "Paper: MWO2KG and Echidna (Stewart, Hodkiewicz, Liu, French; Proc. IMechE Part O, 2024). Labels were taken from observations produced by an NER model and then corrected by hand. Test set of 62 gives wide confidence intervals; treat results as a pilot."
+    },
+    {
+     "name": "MaintIE (fine-grained annotation and benchmark for maintenance short texts)",
+     "url": "https://github.com/nlp-tlp/maintie",
+     "platform": "GitHub",
+     "size": "1,076 expert-annotated texts (gold; the repo's own section 3.4.2 says 1,067 double-annotated texts, a discrepancy) and 7,000 silver texts (repo, fetched)",
+     "labels": "Entity and relation annotation, 5 top classes and 224 leaf entities (e.g. Item, Location, Observation, Specifier, Time). Not failure-mode codes directly.",
+     "license": "MIT (repo, fetched)",
+     "license_verified": true,
+     "access_gate": "none",
+     "notes": "LREC-COLING 2024 paper (aclanthology 2024.lrec-main.954). Usable for component and action extraction; failure-mode mapping would need a new label layer."
+    }
+   ],
+   "frontier_evidence": [
+    {
+     "source": "Large Language Models for Failure Mode Classification: An Investigation (Stewart, Hodkiewicz, Li)",
+     "url": "https://arxiv.org/abs/2309.08181",
+     "year": 2023,
+     "models_tested": "GPT-3.5 (zero-shot, fine-tuned) and a conventional text classifier. No GPT-4 or newer model.",
+     "finding": "Abstract (fetched): fine-tuned GPT-3.5 F1 = 0.80; conventional text classifier F1 = 0.60; out-of-the-box GPT-3.5 F1 = 0.46.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": true
+    },
+    {
+     "source": "Aviation maintenance log structuring: GPT-4o vs fine-tuned small open models (PHM Asia-Pacific 2025)",
+     "url": "https://papers.phmsociety.org/index.php/phmap/article/download/4652/phmap_25_4652",
+     "year": 2025,
+     "models_tested": "GPT-4o; Gemma-3-4B, LLaMA-3.2-3B, Phi-4-mini (instruct, after supervised fine-tuning)",
+     "finding": "From a search summary, not read: fine-tuned Gemma-3-4B surpasses GPT-4o across multiple metrics. The task is abbreviation expansion and text generation, not failure-mode coding.",
+     "directness": "analogous",
+     "level": "plausible",
+     "verified": false
+    }
+   ],
+   "counterevidence": [
+    {
+     "source": "No newer LLM result on FMC-MWO2KG found in 2024-2025 searches",
+     "url": "",
+     "note": "The 2023 GPT-3.5 result is the only one found. Frontier models may now do well with a good prompt and the 22-code list in context; the prompt-ceiling gate must test this first."
+    },
+    {
+     "source": "MaintIE benchmark results (LREC 2024)",
+     "url": "https://github.com/nlp-tlp/maintie",
+     "note": "Entity-level NER on 224 fine-grained labels reaches only 64.43 micro-F1 for SpERT on 347 test entities (repo RESULTS.md, fetched). Fine-grained maintenance extraction is hard for an encoder too, so an SLM alone may not be enough."
+    }
+   ],
+   "small_model_evidence": [
+    {
+     "source": "MaintIE benchmark (RESULTS.md, 108 test texts)",
+     "url": "https://github.com/nlp-tlp/maintie",
+     "year": 2024,
+     "finding": "SpERT micro-F1 for NER: 89.88 with 1 class, 87.39 with 5 classes, 71.58 with 32 classes, 64.43 with 224 classes (fine-grained). Relation extraction strict F1 27.32 at 224 classes. These are encoder models, not small LLMs.",
+     "verified": true
+    },
+    {
+     "source": "No small (<=8B) generative model evidence on FMC-MWO2KG found",
+     "url": "",
+     "year": 2025,
+     "finding": "Gap: no paper found that fine-tunes a 1B-4B model on failure-mode coding.",
+     "verified": true
+    }
+   ],
+   "total": 19
+  },
+  {
+   "rank": 8,
+   "name": "Aviation Safety Report Coder (NASA ASRS)",
+   "industry": "Aviation safety",
+   "verdict": "Interesting narratives and real taxonomy, but no frontier evidence and unclear bulk access and licence.",
+   "task": "Given an ASRS narrative, return the phase of flight and contributing-factor codes.",
+   "why_hard": "Multi-label coding of long narratives against an expert taxonomy; no GPT-4-or-newer study was found.",
+   "business": "Airlines' safety departments, regulators and MRO safety teams.",
+   "ft_vs_rag": "The taxonomy is short; applying it consistently is learned.",
+   "behavior_spec": "Model returns JSON with codes only from the ASRS taxonomy; pass = label F1 against analyst codes.",
+   "example_input": "Narrative excerpt about a runway incursion during taxi.",
+   "example_output": "{\"phase\": \"Taxi\", \"factors\": [\"Human Factors\", \"Airport\"]}",
+   "example_note": "Illustrative.",
+   "agentic_demo": [
+    "Intake receives a report.",
+    "SLM codes it.",
+    "Validator checks the taxonomy.",
+    "Trend tool updates a safety dashboard."
+   ],
+   "eval": "Micro/macro F1 per field.",
+   "risks": "NASA gives no licence statement; the HF copy lacks factor labels.",
+   "feasibility": "Medium; data assembly is the bottleneck.",
+   "scores": {
+    "data": 3,
+    "ft": 3,
+    "business": 3,
+    "agentic": 3,
+    "evidence": 1,
+    "fit": 3
+   },
+   "score_notes": {
+    "data": "47.7k-row HF copy with limited labels.",
+    "ft": "Encoders reach 0.75–0.87 per field.",
+    "business": "Real but narrow buyer.",
+    "agentic": "Dashboard loop is modest.",
+    "evidence": "None found for modern frontier models.",
+    "fit": "The ablation itself would be the first evidence."
+   },
+   "id": "aviation-safety-report-coding",
+   "datasets": [
+    {
+     "name": "NASA ASRS database (search interface and report requests)",
+     "url": "https://asrs.arc.nasa.gov/search/requesting.html",
+     "platform": "Gov",
+     "size": "Not verified in this pass (the public search interface is the only documented access)",
+     "labels": "Official ASRS coding fields: flight phase, anomaly, contributing factors (per the ASRS coding taxonomy)",
+     "license": "Not verified. NASA's Requesting ASRS Data page gives no licence, public-domain statement or terms of use; access is by a contact-form request, subject to program resources.",
+     "license_verified": false,
+     "access_gate": "credentialed",
+     "notes": "Bulk export is by request, not by download. Ask the ASRS office for a statement of need before relying on it. The NASA page says the database is available to interested parties."
+    },
+    {
+     "name": "elihoole/asrs-aviation-reports (Hugging Face)",
+     "url": "https://huggingface.co/datasets/elihoole/asrs-aviation-reports",
+     "platform": "HF",
+     "size": "47.7k rows: train 38.7k, validation 4.3k, test 4.77k (dataset card, fetched)",
+     "labels": "Visible fields include Aircraft 1.9_Flight Phase and Person 1.7_Human Factors. No visible contributing-factor or anomaly column in the first part of the viewer; the list was truncated.",
+     "license": "apache-2.0 (dataset card, fetched). Underlying NASA terms for this copy not verified.",
+     "license_verified": true,
+     "access_gate": "none",
+     "notes": "Good for a flight-phase pilot. Check the full column list before use. Treat the Apache-2.0 tag as the repacker's licence, not NASA's."
+    },
+    {
+     "name": "ASRS-ChatGPT (archanatikayatray, Hugging Face)",
+     "url": "https://huggingface.co:443/datasets/archanatikayatray/ASRS-ChatGPT",
+     "platform": "HF",
+     "size": "About 9,984 records (search summary; not re-read)",
+     "labels": "Analyst synopsis and human-factors labels (human-factors subset only)",
+     "license": "Not verified",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "Narrow subset of human-factors problems. Not general enough for a contributing-factor task."
+    },
+    {
+     "name": "SIAM 2007 Text Mining Competition aviation safety reports (ASRS-derived)",
+     "url": "https://arxiv.org/html/2510.05451v1",
+     "platform": "Other",
+     "size": "Test set 7,077 documents (NASP-T paper, Table 1 source; full corpus size not stated)",
+     "labels": "Multi-label problem categories (examples: Engine Problem, Cabin Pressure Problem, Navigation Problem)",
+     "license": "Not verified",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "A labelled benchmark used by a 2025 paper, but no frontier LLM was tested on it. Find the original source before use."
+    }
+   ],
+   "frontier_evidence": [
+    {
+     "source": "Tikayat Ray et al., ChatGPT for ASRS incident synopses and human-factors identification (Aerospace 2023)",
+     "url": "https://mdpi.com/2226-4310/10/9/770",
+     "year": 2023,
+     "models_tested": "ChatGPT (GPT-3.5 family). Not GPT-4.",
+     "finding": "Reported precision 0.61 on human-factors identification (from a search summary; the MDPI page returned HTTP 403 and was not read).",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": false
+    },
+    {
+     "source": "No frontier-LLM study on ASRS contributing-factor labels found (2024-2025)",
+     "url": "",
+     "year": 2025,
+     "models_tested": "",
+     "finding": "Several searches for GPT-4 or Claude results on ASRS coding found no paper. The gap is itself a finding: the prompt-ceiling gate would need to be the first experiment here.",
+     "directness": "direct",
+     "level": "hypothetical",
+     "verified": true
+    }
+   ],
+   "counterevidence": [
+    {
+     "source": "SafeAeroBERT (NASA, 2023): model card results table",
+     "url": "https://nasa.github.io/mika/models/SafeAeroBERT.html",
+     "note": "Shows that a domain-tuned encoder does not win on every label: Human Factors accuracy is 0.549 for SafeAeroBERT against 0.608 for BERT. Some labels are harder for any model."
+    },
+    {
+     "source": "Human-factors labels in the ASRS-ChatGPT subset",
+     "url": "https://huggingface.co:443/datasets/archanatikayatray/ASRS-ChatGPT",
+     "note": "Not re-read. Fine-tuned models may not beat frontier models on human-factors judgments, which are subjective."
+    }
+   ],
+   "small_model_evidence": [
+    {
+     "source": "SafeAeroBERT: 2023 AIAA Aviation paper (Andrade and Walsh)",
+     "url": "https://nasa.github.io/mika/models/SafeAeroBERT.html",
+     "year": 2023,
+     "finding": "Model card table (accuracy): Procedure BERT 0.766, SafeAeroBERT 0.845; Weather BERT 0.807, SafeAeroBERT 0.871; Aircraft BERT 0.747, SafeAeroBERT 0.740; Human Factors BERT 0.608, SafeAeroBERT 0.549. These are encoder models trained on ASRS and NTSB text, not small generative LLMs. Model card says its figures may come from an earlier version.",
+     "verified": true
+    },
+    {
+     "source": "NASP-T: Fuzzy Neuro-Symbolic Transformer for aviation safety report classification",
+     "url": "https://arxiv.org/html/2510.05451v1",
+     "year": 2025,
+     "finding": "DistilBERT (BCE) micro-F1 0.632, macro-F1 0.589 on the SIAM 2007 test set (7,077 documents). No generative LLM was tested.",
+     "verified": true
+    }
+   ],
+   "total": 16
+  },
+  {
+   "rank": 9,
+   "name": "Trial Eligibility Screener",
+   "industry": "Clinical research",
+   "verdict": "High value, but GPT-4 already reaches 87% criterion-level accuracy, so the prompt ceiling is too high.",
+   "task": "Given a patient summary and one trial criterion, return met / not met / insufficient information with a quote.",
+   "why_hard": "Temporal and negated clinical facts; but TrialGPT (2024) shows GPT-4 at 87.3% criterion accuracy, close to experts.",
+   "business": "Trial sites and sponsors spend heavily on screening; privacy favours local models.",
+   "ft_vs_rag": "Weak case: the frontier baseline is already strong.",
+   "behavior_spec": "Model returns one of three labels with a quote from the note; pass = label match and quote present.",
+   "example_input": "Patient: 64F, HbA1c 8.1% last month. Criterion: HbA1c between 7% and 10%.",
+   "example_output": "{\"label\": \"met\", \"quote\": \"HbA1c 8.1% last month\"}",
+   "example_note": "Illustrative.",
+   "agentic_demo": [
+    "ClinicalTrials.gov tool finds trials.",
+    "SLM labels each criterion.",
+    "Rules flag missing labs.",
+    "Agent drafts a coordinator review."
+   ],
+   "eval": "Criterion-level accuracy against TREC/TrialGPT annotations.",
+   "risks": "Small annotated sets; strong frontier baseline.",
+   "feasibility": "Feasible, but likely fails the gate.",
+   "scores": {
+    "data": 2,
+    "ft": 2,
+    "business": 5,
+    "agentic": 4,
+    "evidence": 1,
+    "fit": 2
+   },
+   "score_notes": {
+    "data": "About 1,000 annotated patient-criterion pairs.",
+    "ft": "No small-model advantage shown.",
+    "business": "Expensive screening process.",
+    "agentic": "ClinicalTrials.gov API makes a good loop.",
+    "evidence": "Counterevidence: GPT-4 near expert level.",
+    "fit": "Prompt ceiling likely too high."
+   },
+   "id": "patient-to-trial-eligibility",
+   "datasets": [
+    {
+     "name": "TREC Clinical Trials 2021 and 2022 (NIST)",
+     "url": "https://trec.nist.gov/pubs/trec31/papers/Overview_trials.pdf",
+     "platform": "Gov",
+     "size": "2022: 50 topics (patient descriptions), about 26,581 considered trials for one cohort in TrialGPT's use; 2021: 75 topics, about 26,149 trials (as used in the TrialGPT paper)",
+     "labels": "Relevance judgments (eligible, excluded, irrelevant) for patient-trial pairs; qrels and topics are published",
+     "license": "not verified",
+     "license_verified": false,
+     "access_gate": "none",
+     "notes": "The NIST catalog lists the 2022 corpus, topics and qrels (data.gov record). The license was not read on the NIST pages, so check before reuse. The 2021 snapshot date is conflicting across sources."
+    },
+    {
+     "name": "TrialGPT patient cohorts (SIGIR 2016, TREC 2021, TREC 2022 subsets)",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11574183",
+     "platform": "Other",
+     "size": "183 synthetic patients across three cohorts (58 + 75 + 50), over 75,000 trial annotations (per the abstract, read via PMC)",
+     "labels": "Criterion-level eligibility annotations by experts",
+     "license": "not verified",
+     "license_verified": false,
+     "access_gate": "unknown",
+     "notes": "Whether the annotated cohorts are downloadable from the paper's data statement was not checked in this pass."
+    }
+   ],
+   "frontier_evidence": [
+    {
+     "source": "Matching patients to clinical trials with large language models (TrialGPT, Nature Communications)",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11574183",
+     "year": 2024,
+     "models_tested": "GPT-4 (version 0613) and GPT-3.5 (version 0613) via Azure OpenAI, temperature 0",
+     "finding": "TrialGPT-Matching criterion-level accuracy 87.3% with faithful explanations, expert accuracy 0.887 to 0.900 (1,015 patient-criterion pairs, manual evaluation). TrialGPT-Retrieval recalls over 90% of relevant trials using under 6% of the collection; average recall at top 500 is 86.2% (GPT-4) and 83.4% (GPT-3.5). A pilot user study (two annotators, six trials, six vignettes) gives an average 42.6% screening-time reduction. Ranking correlation is not a single coefficient in the paper; Table 2 gives NDCG@10 0.7275 for GPT-4.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": true
+    },
+    {
+     "source": "TrialMatchAI: An End-to-End AI-powered Clinical Trial Recommendation System (arXiv 2505.08508, May 2025)",
+     "url": "https://arxiv.org/abs/2505.08508",
+     "year": 2025,
+     "models_tested": "Fine-tuned open-source LLMs (names and sizes not read)",
+     "finding": "Abstract prints: 92 percent of oncology patients had at least one relevant trial in the top 20 recommendations; expert assessment validated over 90 percent accuracy in criterion-level eligibility classification. No NDCG or precision figure on the abstract page.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": true
+    }
+   ],
+   "counterevidence": [
+    {
+     "source": "TrialGPT results are GPT-4 0613, a 2023 model; newer frontier models have not been reported on this task in the sources read",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11574183",
+     "note": "The baseline is already near expert accuracy, so the case for a tuned SLM must come from on-premise privacy, cost per patient, or latency. Measure those; do not claim the frontier fails here."
+    },
+    {
+     "source": "Pilot user study size (TrialGPT)",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11574183",
+     "note": "The 42.6% time saving comes from two annotators, six trials and six vignettes, so it is a pilot signal, not a field result."
+    }
+   ],
+   "small_model_evidence": [
+    {
+     "source": "No verified small-model (at or below 4B) result for patient-to-trial matching was found in this pass",
+     "url": "",
+     "year": 2025,
+     "finding": "TrialMatchAI uses fine-tuned open-source LLMs, but model sizes are not read. This is an evidence gap to close before choosing this candidate.",
+     "verified": false
+    }
+   ],
+   "total": 16
+  },
+  {
+   "rank": 10,
+   "name": "Fed Stance Classifier (hawkish / dovish / neutral)",
+   "industry": "Finance and accounting",
+   "verdict": "Clean finance data and a natural rates-desk workflow, but it is close to sentiment, the only frontier number is GPT-3.5, and prompted small open models already beat the fine-tuned baseline on newer statements.",
+   "task": "Given one sentence from an FOMC statement, minutes, speech or press conference, label its monetary-policy stance as hawkish, dovish or neutral.",
+   "why_hard": "Stance depends on Fed-specific conventions (\"balance of risks\", \"some further policy firming\"). Shah et al. (ACL 2023) report fine-tuned RoBERTa-large at weighted F1 0.717 against zero-shot GPT-3.5 at 0.587. No 2025-26 frontier result was found.",
+   "business": "Rates desks, macro funds and research teams track the Fed's tone across every speech; a local model scores each new sentence within seconds of release.",
+   "ft_vs_rag": "Weak: the label is a judgment over a short sentence, so retrieval adds little, and prompting with definitions already goes a long way.",
+   "behavior_spec": "Given one FOMC sentence, the model returns exactly one of hawkish, dovish or neutral as JSON with the phrase that decided it. Pass = valid label matching the annotation.",
+   "example_input": "The Committee judges that some further policy firming may be appropriate in order to return inflation to 2 percent over time.",
+   "example_output": "{\"stance\": \"hawkish\", \"cue\": \"some further policy firming may be appropriate\"}",
+   "example_note": "Sentence in the style of a 2023 FOMC statement; the label is illustrative.",
+   "agentic_demo": [
+    "A watcher pulls a new FOMC statement or Fed speech the minute it is published.",
+    "The stance SLM labels every sentence and cites the deciding phrase.",
+    "A diff tool compares the stance mix with the previous statement and highlights changed sentences.",
+    "A market-data tool pulls the 2-year Treasury yield and fed funds futures from FRED and the desk's feed.",
+    "A research agent drafts a one-paragraph note: what changed, how hawkish, how the market moved."
+   ],
+   "eval": "Weighted F1 against the gtfintechlab test split (496 sentences), plus a held-out set from 2024-26 statements labelled by hand.",
+   "risks": "Close to the generic sentiment tasks the brief warns against. Labels drift with Fed language (a 2026 study saw the RoBERTa baseline fall to 0.43 accuracy on 2003-2025 statements). CC BY-NC licence limits republishing the dataset.",
+   "feasibility": "Easy to train (2k rows), hard to pass the prompt-ceiling gate.",
+   "scores": {
+    "data": 3,
+    "ft": 2,
+    "business": 3,
+    "agentic": 4,
+    "evidence": 2,
+    "fit": 2
+   },
+   "score_notes": {
+    "data": "2,480 labelled sentences; CC BY-NC 4.0.",
+    "ft": "Prompted Qwen3-4B beat the fine-tuned baseline on newer statements (arXiv 2603.14313).",
+    "business": "Real but narrow audience; signal value is contested.",
+    "agentic": "FRED and statement diffs make a tidy research loop.",
+    "evidence": "Only GPT-3.5 (2023) measured.",
+    "fit": "Sentiment-like; plateau likely too high."
+   },
+   "id": "fomc-stance-hawkish-dovish",
+   "datasets": [
+    {
+     "name": "gtfintechlab/fomc_communication (Trillion Dollar Words data)",
+     "url": "https://huggingface.co/datasets/gtfintechlab/fomc_communication",
+     "platform": "HF",
+     "size": "2,480 rows total; train 1.98k, test 496 (dataset card)",
+     "labels": "Dovish (LABEL_0), Hawkish (LABEL_1), Neutral (LABEL_2)",
+     "license": "cc-by-nc-4.0",
+     "license_verified": true,
+     "access_gate": "none",
+     "notes": "Dataset card shows no gate. The companion model gtfintechlab/FOMC-RoBERTa is gated (share-info) and CC BY-NC 4.0. Code is in github.com/gtfintechlab/fomc-hawkish-dovish (not opened). Non-commercial only."
+    }
+   ],
+   "frontier_evidence": [
+    {
+     "source": "Trillion Dollar Words: A New Financial Dataset, Task & Market Analysis (Shah, Paturi, Chava), ACL 2023",
+     "url": "https://arxiv.org/abs/2305.07972",
+     "year": 2023,
+     "models_tested": "gpt-3.5-turbo zero-shot (temperature 0, calls May 2023); RoBERTa-large/base, BERT, FinBERT, FLANG variants, LSTM, Bi-LSTM, rule-based. No GPT-4-class model.",
+     "finding": "Table 5, weighted F1. Combined: RoBERTa-large 0.7171 vs ChatGPT-3.5-Turbo zero-shot 0.5872. Speeches: 0.7169 vs 0.6446. Press conferences: 0.5517 vs 0.4869. Accuracy is not reported.",
+     "directness": "direct",
+     "level": "demonstrated",
+     "verified": true
+    }
+   ],
+   "counterevidence": [
+    {
+     "source": "Mind the Shift: Decoding Monetary Policy Stance from FOMC Statements with LLMs (Tang & Yang), arXiv 2603.14313, March 2026",
+     "url": "https://arxiv.org/abs/2603.14313",
+     "note": "On its own 2003-2025 statement set, the Shah et al. FOMC-RoBERTa baseline scored accuracy 0.4337 (F1 0.5346), below a dictionary baseline (0.4458 accuracy). Prompted open LLMs did better: Qwen3-4B LLM-judge accuracy 0.6386. This suggests the supervised model does not transfer to newer text, and that the prompting gap may have closed. Backbones were open 1B-14B, not frontier. Verified from the HTML Table 1."
+    }
+   ],
+   "small_model_evidence": [
+    {
+     "source": "Trillion Dollar Words (Shah et al.), ACL 2023",
+     "url": "https://arxiv.org/abs/2305.07972",
+     "year": 2023,
+     "finding": "Fine-tuned RoBERTa-large (about 355M parameters) reached combined F1 0.7171, above zero-shot GPT-3.5-Turbo at 0.5872. This is the only small-vs-LLM result on this task that I read in full.",
+     "verified": true
+    }
+   ],
+   "total": 16
+  }
+ ],
+ "rejected": [
+  {
+   "name": "Cybersecurity candidates",
+   "reason": "Removed at your request on 2026-10-29."
+  },
+  {
+   "name": "IUPAC-to-SMILES name conversion as a standalone task",
+   "reason": "Deterministic tools (OPSIN, PubChem) already convert names; kept only as an agent tool."
+  },
+  {
+   "name": "ICD-10 coding trained on MIMIC-III (PLM-ICD style)",
+   "reason": "Same access gate as ICD-10 above, and the published numbers could not be read."
+  },
+  {
+   "name": "Log anomaly detection on Loghub labels",
+   "reason": "Not researched in this pass; anomaly labels are sparse and tabular methods are strong baselines."
+  },
+  {
+   "name": "Traffic crash narrative coding",
+   "reason": "Surfaced in search but not opened; candidate for a later pass."
+  },
+  {
+   "name": "Wind-turbine maintenance log labelling",
+   "reason": "2026 paper surfaced in search but not opened; overlaps the maintenance candidate."
+  },
+  {
+   "name": "Merger-agreement deal points (MAUD)",
+   "reason": "Open data (152 agreements, CC BY 4.0), but a 2026 study puts Claude Opus 4.6 and GPT-5.4 within 0.02-0.04 micro F1 of a fine-tuned model on similar contract extraction, and agreements are long."
+  },
+  {
+   "name": "TCFD climate-disclosure classification",
+   "reason": "Under source shift, prompted GPT-4o beats the supervised ClimateBERT (macro-F1 0.707 vs 0.648); dataset is CC BY-NC-SA."
+  },
+  {
+   "name": "Bank-transaction and merchant-descriptor categorisation",
+   "reason": "High business value, but no real labelled public dataset with LLM numbers was found; public sets are synthetic."
+  },
+  {
+   "name": "Numeric claim detection, 8-K item classification, covenant extraction",
+   "reason": "Dataset not public, no frontier head-to-head, or no public labels."
+  },
+  {
+   "name": "Predictive maintenance from sensor data",
+   "reason": "Tabular time-series problem; gradient-boosted trees beat a language model."
+  }
+ ]
+}

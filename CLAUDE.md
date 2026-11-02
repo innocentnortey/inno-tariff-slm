@@ -14,7 +14,7 @@ models, Unsloth/TRL for QLoRA. Innocent owns scope and every sign-off; Claude dr
 | Data | Rulings ingest, cleaning, subset, splits, candidate sets | `src/tariff_slm/data/` (planned), `data/` |
 | Evals | Behavior checks, baselines, judge, prompt-ceiling runner, `eval.py` | `src/tariff_slm/evals/` (planned), `evals/` |
 | Training | QLoRA runs, data-efficiency sweep | `train/` (planned) |
-| Product vision and planning | PRD, behavior and evals, data and training, architecture, execution plan | `Gauntlet AI/docs/planning/tariff-*.md` |
+| Product vision and planning | PRD, behavior and evals, data and training, architecture, execution plan | `docs/planning/tariff-*.md` |
 
 ## Non-negotiable boundaries
 - **The model trains on one behavior only.** Retrieval, duty maths and validation stay outside the model. Rule: [agent-architecture](.claude/rules/agent-architecture.md).
@@ -30,9 +30,10 @@ models, Unsloth/TRL for QLoRA. Innocent owns scope and every sign-off; Claude dr
 
 | Task | Read |
 |---|---|
+| Original research, evidence, or SLM versus RAG | [research index](docs/research/README.md) |
 | Which document wins a disagreement | *How this project is governed*, below |
-| Change the data subset, splits or candidates | [router → Data](.claude/README.md), [domain](.claude/reference/domain.md), `Gauntlet AI/docs/planning/tariff-data-training.md` |
-| Change the behavior spec or an eval | `Gauntlet AI/docs/planning/tariff-behavior-and-evals.md`, [router → Evals](.claude/README.md) |
+| Change the data subset, splits or candidates | [router → Data](.claude/README.md), [domain](.claude/reference/domain.md), `docs/planning/tariff-data-training.md` |
+| Change the behavior spec or an eval | `docs/planning/tariff-behavior-and-evals.md`, [router → Evals](.claude/README.md) |
 | Start or resume work | [`.claude/state/resume.md`](.claude/state/resume.md), then [`PROJECT-CHECKLIST.md`](PROJECT-CHECKLIST.md) |
 
 ## How this project is governed
@@ -43,7 +44,7 @@ Entry points **route**, rules **prohibit**, references **explain**, canonical do
 | Where anything is, what to load | [router](.claude/README.md) |
 | How to keep context true while working | [maintenance rule](.claude/rules/context-maintenance.md) — read on any task that moves code or an owner |
 | Context-system maturity | [ICM progress checklist](.claude/state/icm-progress.md) |
-| Requirements / decisions | Gauntlet brief `Gauntlet AI/course-material/2026-10-27-week7-train-your-own-slm-brief.md`, then `Gauntlet AI/docs/planning/tariff-project-prd.md` |
+| Requirements / decisions | Gauntlet brief `course-material/2026-10-27-week7-train-your-own-slm-brief.md`, then `docs/planning/tariff-project-prd.md` |
 | Stage and gates | [`PROJECT-CHECKLIST.md`](PROJECT-CHECKLIST.md); submission items in [`SUBMISSION.md`](SUBMISSION.md) |
 | Where we left off | [`.claude/state/resume.md`](.claude/state/resume.md) |
 | Run history | [dev log](docs/devlog/) |

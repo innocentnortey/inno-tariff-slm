@@ -1,0 +1,97 @@
+{
+  "copied_on": "2026-11-01",
+  "source_root": "../Gauntlet AI",
+  "mode": "unchanged snapshots; no automatic synchronization",
+  "files": [
+    {
+      "path": "docs/research/slm-domain-research.md",
+      "source": "Gauntlet AI/docs/research/slm-domain-research.md",
+      "sha256": "a51ace2f58eb7f106ad9edcebc6ae2752d69ff0339a75a333bdeaf8af0b3fd64"
+    },
+    {
+      "path": "docs/research/slm-domain-explorer.html",
+      "source": "Gauntlet AI/docs/research/slm-domain-explorer.html",
+      "sha256": "e455d10beec199379c6fe9d2e9e39bd689e7db899210d49bf4645a4a7bb1b869"
+    },
+    {
+      "path": "docs/research/slm-idea-explorer.html",
+      "source": "Gauntlet AI/docs/research/slm-idea-explorer.html",
+      "sha256": "8870ab9063f40bc59417acf604ca26eaf188f630fff9f51158204f1699b6a836"
+    },
+    {
+      "path": "docs/research/tariff-compliance-vision.html",
+      "source": "Gauntlet AI/docs/research/tariff-compliance-vision.html",
+      "sha256": "0483c22adcadc062f9699af090e123704ebea69a88bcb92e0c4edf69a06daeda"
+    },
+    {
+      "path": "docs/research/slm-domain-explorer-data/BRIEF.md",
+      "source": "Gauntlet AI/docs/research/slm-domain-explorer-data/BRIEF.md",
+      "sha256": "6fdf3f34c885ecafd2d0638ac3d7f45bb471a55c82c46f238ae1a586f7a6be77"
+    },
+    {
+      "path": "docs/research/slm-domain-explorer-data/FN.json",
+      "source": "Gauntlet AI/docs/research/slm-domain-explorer-data/FN.json",
+      "sha256": "ab0310335b5a261cd4f1aaf9636995318b8f6750d26fb44e435fe1a74627e34c"
+    },
+    {
+      "path": "docs/research/slm-domain-explorer-data/OP.json",
+      "source": "Gauntlet AI/docs/research/slm-domain-explorer-data/OP.json",
+      "sha256": "1e65d66f23963909e95775cdb441884aa96bbb1aba8002efc7dc3943d5604754"
+    },
+    {
+      "path": "docs/research/slm-domain-explorer-data/README.md",
+      "source": "Gauntlet AI/docs/research/slm-domain-explorer-data/README.md",
+      "sha256": "61fe9059cc7e25a7690a5be35818d157d4ff044ab835ccc00031fcfa73335ba4"
+    },
+    {
+      "path": "docs/research/slm-domain-explorer-data/SH.json",
+      "source": "Gauntlet AI/docs/research/slm-domain-explorer-data/SH.json",
+      "sha256": "837819ec07e5a98e430f6a9605f8601736e2f281c88a27e22555f258af681314"
+    },
+    {
+      "path": "docs/research/slm-domain-explorer-data/TF.json",
+      "source": "Gauntlet AI/docs/research/slm-domain-explorer-data/TF.json",
+      "sha256": "e039d8299f35a18b619da6d296f1ab1ad146121eacd1dd4b57aaac2691b216fb"
+    },
+    {
+      "path": "docs/research/slm-domain-explorer-data/build.py",
+      "source": "Gauntlet AI/docs/research/slm-domain-explorer-data/build.py",
+      "sha256": "8ec9a25a31c697d3fc3c37172bca89df6a0fe145933ca089f46a99d6819fb6cc"
+    },
+    {
+      "path": "docs/research/slm-domain-explorer-data/curate.py",
+      "source": "Gauntlet AI/docs/research/slm-domain-explorer-data/curate.py",
+      "sha256": "d8027996cf044d223c66db32746c37aa12a1a45493c6e48d8f86211c701ee1ae"
+    },
+    {
+      "path": "docs/research/slm-domain-explorer-data/curated.json",
+      "source": "Gauntlet AI/docs/research/slm-domain-explorer-data/curated.json",
+      "sha256": "41fdadfd2211333f0d498ff4fb8bea30e88eeea3688c2de7746e0882cd7348cb"
+    },
+    {
+      "path": "docs/research/slm-domain-explorer-data/template.html",
+      "source": "Gauntlet AI/docs/research/slm-domain-explorer-data/template.html",
+      "sha256": "bbbccc203e02a117e0ad9af81630486f6fa375b4bdd4f87bed742da11321fd3a"
+    },
+    {
+      "path": "course-material/2026-10-27-week7-train-your-own-slm-brief.md",
+      "source": "Gauntlet AI/course-material/2026-10-27-week7-train-your-own-slm-brief.md",
+      "sha256": "29f9013a8161fb992db376625284c85b67078cd038767055372350f46ceadc36"
+    },
+    {
+      "path": "course-material/2026-10-27-week7-train-your-own-slm-brief.pdf",
+      "source": "Gauntlet AI/course-material/2026-10-27-week7-train-your-own-slm-brief.pdf",
+      "sha256": "5d2fd89e6fb4f0c02dc774928d794715b118bfee47333b8e12d41c66dfd5476c"
+    },
+    {
+      "path": "course-material/2026-10-27-week7-train-your-own-slm-slides.md",
+      "source": "Gauntlet AI/course-material/2026-10-27-week7-train-your-own-slm-slides.md",
+      "sha256": "625649d115fc9e86f3d77a099294397f007e70ba3257edeac7729c359448d7df"
+    },
+    {
+      "path": "transcripts/2026-10-27-slm-assignment.md",
+      "source": "Gauntlet AI/transcripts/2026-10-27-slm-assignment.md",
+      "sha256": "ab73e6e65230e9fadefb5fefeec3e7548c2ebf6011b0a8cc4388057db7a04eaa"
+    }
+  ]
+}

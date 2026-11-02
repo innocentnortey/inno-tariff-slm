@@ -1,0 +1,273 @@
+{
+  "area": "SH (science and healthcare)",
+  "candidates": [
+    {
+      "id": "smiles-reaction-and-name-conversion",
+      "name": "SMILES chemistry tasks: forward synthesis, retrosynthesis, IUPAC name conversion (SMolInstruct)",
+      "industry": "Pharma and chemistry R&D (medicinal chemistry, process chemistry)",
+      "task": "Input a reactant/reagent set or a molecule name in one notation (SMILES, IUPAC/common name, or formula) and output the product SMILES (forward synthesis), the precursor SMILES (retrosynthesis), or the same molecule in another notation (name conversion). The SLM learns the string-to-string mapping; a validator (RDKit) checks the output parses.",
+      "why_hard_for_llm": "GPT-4 and Claude 3 Opus in the LlaSMol paper (arXiv v4 table, read 2026-10-29) scored exact-match 1.6% and 3.7% on forward synthesis and 0.0% and 1.1% on retrosynthesis, and a large share of their outputs were not valid SMILES (GPT-4 forward-synthesis validity 87.0%, retrosynthesis 42.6%). The paper tested GPT-4-era models, so newer models may have moved these numbers.",
+      "business_value": "Medicinal chemists and CRO teams who want a fast first-pass proposal of products or precursors, with a validator in the loop; the buyer is an R&D lead who cares about cycle time and invalid-structure rate, not raw accuracy alone.",
+      "datasets": [
+        {
+          "name": "SMolInstruct (osunlp/SMolInstruct)",
+          "url": "https://huggingface.co/datasets/osunlp/SMolInstruct",
+          "platform": "HF",
+          "size": "over 3M samples across 14 tasks; 695 MB (dataset card, read 2026-10-29)",
+          "labels": "Ground-truth products (forward_synthesis), precursors (retrosynthesis), name conversions (name_conversion-i2f, -i2s, -s2f, -s2i), plus molecule captioning, generation and ESOL/LIPO/BBBP/ClinTox/HIV/SIDER property tasks",
+          "license": "CC BY 4.0 (cc-by-4.0, per the dataset card)",
+          "license_verified": true,
+          "access_gate": "none",
+          "notes": "The card asks for high ethical standards and forbids uses that could cause harm. The dataset card does not use the term reaction prediction; forward_synthesis is the reaction-prediction task. Check the split and any leakage against USPTO-derived training sets before reporting numbers."
+        }
+      ],
+      "frontier_evidence": [
+        {
+          "source": "LlaSMol: Advancing Large Language Models for Chemistry with a Large-Scale, Comprehensive, High-Quality Instruction Tuning Dataset (SMolInstruct)",
+          "url": "https://arxiv.org/abs/2402.09391",
+          "year": 2024,
+          "models_tested": "GPT-4, Claude 3 Opus (zero-shot as reported in the table); fine-tuned LlaSMol (Mistral base); SoTA = Molecular Transformer (forward synthesis, retrosynthesis) and STOUT/RDKit (name conversion)",
+          "finding": "Forward synthesis EM: GPT-4 1.6, Claude 3 Opus 3.7, LlaSMol 63.3, SoTA 78.7. Retrosynthesis EM: GPT-4 0.0, Claude 3 Opus 1.1, LlaSMol 32.9, SoTA 47.0. Name conversion I2F EM: GPT-4 8.7, Claude 3 Opus 34.6, LlaSMol 87.9, SoTA 97.9. Numbers read from the arXiv v4 HTML table; the NC column header was garbled in extraction, so the column mapping is an inference.",
+          "directness": "direct",
+          "level": "demonstrated",
+          "verified": true
+        },
+        {
+          "source": "RetroDFM-R: Reasoning-Driven Retrosynthesis Prediction with Large Language Models via Reinforcement Learning",
+          "url": "https://arxiv.org/abs/2507.17448",
+          "year": 2025,
+          "models_tested": "Authors' model (RL-tuned LLM); the abstract was read, the baseline table was not",
+          "finding": "Authors report 60.4% accuracy without augmentation and 66.1% with the full inference setup on USPTO-50K. The abstract does not print GPT-5.2 or o4-mini numbers.",
+          "directness": "direct",
+          "level": "demonstrated",
+          "verified": true
+        },
+        {
+          "source": "RetroDFM-R baseline table (GPT-5.2 21.8%, o4-mini, DeepSeek-R1, Intern-S1 20.8%)",
+          "url": "https://arxiv.org/abs/2507.17448",
+          "year": 2025,
+          "models_tested": "gpt-5.2-2025-12-11, o4-mini, DeepSeek-R1-0526, Intern-S1 (per a search summary; not read on the page)",
+          "finding": "A search summary reports GPT-5.2 at 21.8% exact-match on USPTO-50K, the best frontier number it lists. Not confirmed on the fetched abstract.",
+          "directness": "direct",
+          "level": "demonstrated",
+          "verified": false
+        }
+      ],
+      "counterevidence": [
+        {
+          "source": "RetroDFM-R (2025), if the GPT-5.2 baseline is confirmed",
+          "url": "https://arxiv.org/abs/2507.17448",
+          "note": "If the unverified 21.8% holds, frontier reasoning models on USPTO-50K are far better than GPT-4 (0.0%) but still well below the 60.4% of a specialised RL-tuned model, which means the gap is narrower but not closed. Read the baseline table before citing either side."
+        },
+        {
+          "source": "ChemBench (Nature Chemistry, July 2025; arXiv preprint 2404.01475 'Are large language models superhuman chemists?')",
+          "url": "https://arxiv.org/abs/2404.01475",
+          "note": "Over 2,700 QA pairs (abstract read). The abstract says the best models outperform the best human chemists on average, but it prints no per-model scores, and it does not test SMILES generation. Use it as context only."
+        },
+        {
+          "source": "ChemIQ GPT-5 result (single-lab blog, 70.2%)",
+          "url": "",
+          "note": "Reported in a search summary only, not fetched, not verified. It tests counting and NMR-type questions, not reaction prediction. Do not cite it as evidence for this task."
+        },
+        {
+          "source": "Deterministic tools (RDKit, PubChem name lookup)",
+          "url": "",
+          "note": "Hypothesis, not verified in this pass. Name conversion between notations may be solvable by an RDKit or name-to-structure lookup tool, which would remove the need for a tuned model on that subtask. Test this before choosing the name-conversion subtask."
+        }
+      ],
+      "small_model_evidence": [
+        {
+          "source": "LlaSMol (Mistral base, LoRA-tuned on SMolInstruct)",
+          "url": "https://arxiv.org/abs/2402.09391",
+          "year": 2024,
+          "finding": "The fine-tuned Mistral-based model beats GPT-4 and Claude 3 Opus on all tasks in the paper, but it stays below the task-specific SoTA on most metrics (for example, forward synthesis EM 63.3 vs 78.7). Parameter count not read on the fetched pages; the base is Mistral, which is 7B-class. No model at 1B-4B was found in this pass.",
+          "verified": true
+        }
+      ],
+      "why_ft_beats_rag": "The skill is a learned string mapping (reactants to product, name to SMILES), and no retrieved document contains the answer, so retrieval does not help. A tuned model can learn canonical SMILES output format, which a prompted model often misses (validity was 42.6% for GPT-4 on retrosynthesis in the LlaSMol table).",
+      "example_input": "Illustrative template, not from the dataset: a forward-synthesis prompt with reactant SMILES and reagent SMILES separated by a dot, in the format the SMolInstruct card uses. Check the exact prompt template in the dataset before building the eval.",
+      "example_output": "Illustrative template: one product SMILES string that parses in RDKit.",
+      "behavior_spec": "Given reactants and reagents in SMILES, the model returns one product SMILES that parses with RDKit and matches the reference canonical SMILES in at least 60% of held-out cases (a threshold to set after a base-model run, not a published target).",
+      "agentic_demo": "Step 1: the user gives reactants as a name; the agent calls a name-to-SMILES tool (PubChem or RDKit). Step 2: the SLM proposes a product SMILES. Step 3: RDKit parses it and checks atom balance; invalid output triggers one retry. Step 4: the agent calls PubChem to return the product's name for review.",
+      "eval": "Exact canonical-SMILES match, fingerprint Tanimoto similarity, and RDKit validity, computed on the SMolInstruct test split for forward_synthesis, retrosynthesis and name_conversion. Run the base model, the tuned SLM, and at least two frontier models on the same held-out split, using the same prompt and the same scoring code.",
+      "risks": "Target SLM size is 1B-4B, but the strongest published result is a 7B-class model; the small-model number is unknown. The SoTA specialist beats the LLM, so the pitch must be the agent, not the raw accuracy. Frontier numbers are GPT-4 era; a fresh frontier run is needed for the ablation gate. Chemistry is not a business workflow for most buyers, so the value story is weaker than the others.",
+      "qlora_feasibility": "Data is ready (CC BY 4.0, no gate, 695 MB). Scoring is deterministic with RDKit, so the eval is cheap. Four days is enough for a QLoRA run on one 24 GB card for one or two subtasks. Risk: subtask choice (name conversion may be solved by a tool)."
+    },
+    {
+      "id": "icd10-coding-from-clinical-text",
+      "name": "ICD-10-CM code assignment from clinical text",
+      "industry": "Healthcare revenue cycle and clinical documentation (medical coding, HIM)",
+      "task": "Input a clinical note or a diagnosis phrase, and output the ICD-10-CM code(s) that the note supports. The SLM learns the mapping from text to code strings. A validator checks each code against the official code set.",
+      "why_hard_for_llm": "In the NEJM AI benchmark (Soroush et al., 2024), GPT-4 reached 33.9% exact match on ICD-10-CM codes, against 45.9% on ICD-9-CM and 49.8% on CPT. The authors report that every model they tested was below 50%. The benchmark tested code querying (matching a code to its official description), not full note coding, so the gap is for a related but easier task. Models also invent codes that do not exist, and ICD-10-CM has many letter-number combinations with no code.",
+      "business_value": "Coders and revenue-cycle leads at hospitals and physician groups, who pay for coder time and denial rates; a model that proposes codes from notes, with evidence spans, cuts coder time per chart.",
+      "datasets": [
+        {
+          "name": "MIMIC-IV (PhysioNet)",
+          "url": "https://physionet.org/content/mimiciv/",
+          "platform": "Other",
+          "size": "364,627 unique individuals and 546,028 hospitalizations (as printed on the page; the page attributes these counts to v3.0, while the page header says v3.1)",
+          "labels": "ICD-9 and ICD-10 diagnosis and procedure codes attached to hospital stays (structured billing codes); clinical notes are in MIMIC-IV-Note, a separate module",
+          "license": "PhysioNet Credentialed Health Data License 1.5.0",
+          "license_verified": true,
+          "access_gate": "credentialed",
+          "notes": "Requires PhysioNet credentialing, CITI 'Data or Specimens Only Research' training, and signing the PhysioNet Credentialed Health Data Use Agreement 1.5.0. Notes live in a separate MIMIC-IV-Note module; check its access terms before planning. Turnaround for credentialing is not verified here."
+        },
+        {
+          "name": "CodiEsp (CLEF eHealth 2020 corpus, Spanish clinical cases coded in CIE-10)",
+          "url": "https://zenodo.org/records/3837305",
+          "platform": "Zenodo",
+          "size": "1,000 clinical cases: 500 train, 250 development, 250 test (Zenodo record, v1.4)",
+          "labels": "Manually assigned ICD-10-CM (CIE-10) diagnosis codes and procedure codes, plus evidence spans (CodiEsp-X)",
+          "license": "Creative Commons Attribution 4.0 International (license field on the Zenodo record)",
+          "license_verified": true,
+          "access_gate": "none",
+          "notes": "Spanish-language. The record carries a 2019 copyright line from a Spanish government secretariat, but lists no access limits. Use the newest record version. Good for a fast open pilot; not an English US-coding proxy."
+        }
+      ],
+      "frontier_evidence": [
+        {
+          "source": "Large Language Models Are Poor Medical Coders: Benchmarking of Medical Code Querying (Soroush et al., NEJM AI)",
+          "url": "https://ai.nejm.org/doi/full/10.1056/AIdbp2300040",
+          "year": 2024,
+          "models_tested": "GPT-4, GPT-3.5, Gemini Pro, Llama-2-70b Chat",
+          "finding": "GPT-4 exact match: ICD-9-CM 45.9%, ICD-10-CM 33.9%, CPT 49.8%. The authors report all models below 50%. Over 27,000 unique diagnosis and procedure codes. Numbers read from a press release (EurekAlert, 2024-04-22); the NEJM AI page returned HTTP 403 and was not read.",
+          "directness": "partial",
+          "level": "demonstrated",
+          "verified": true
+        },
+        {
+          "source": "Domain-specific fine-tuned LLMs for ICD-10 coding (Hou et al., npj Health Systems, 2025)",
+          "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12045799/",
+          "year": 2025,
+          "models_tested": "Fine-tuned LLMs; GPT-4o mini and Llama models are named in a search summary (not confirmed)",
+          "finding": "Search summary: fine-tuning on 74,260 ICD-10 code-description pairs, then extra training on lexical variants, gave 69.20% exact match and 87.16% category match on real clinical notes. Not read on the page; treat as a lead to check.",
+          "directness": "direct",
+          "level": "plausible",
+          "verified": false
+        }
+      ],
+      "counterevidence": [
+        {
+          "source": "Rollman et al., Practical Design and Benchmarking of Generative AI Applications for Surgical Billing and Coding (arXiv 2501.05479, Jan 2025)",
+          "url": "https://arxiv.org/abs/2501.05479",
+          "note": "Fine-tuned Phi-3 Medium reached ICD-10 recall 72% and precision 72% on institutional operative-report data (read on abstract page). Abstract says both fine-tuned models performed better than or as well as GPT-4o, but no GPT-4o number is printed. Dataset size not stated. Shows a small tuned model can match a frontier model on a narrow, single-site task."
+        },
+        {
+          "source": "Fine-tuning coverage limits (2026 preprint, cited by a search summary, not read)",
+          "url": "",
+          "note": "A search summary says MIMIC-IV covers only about 10% of the roughly 70,000 ICD-10-CM codes. If confirmed, a tuned model will not learn the rare codes, so the eval must report per-code-frequency results."
+        }
+      ],
+      "small_model_evidence": [
+        {
+          "source": "Rollman et al. (arXiv 2501.05479)",
+          "url": "https://arxiv.org/abs/2501.05479",
+          "year": 2025,
+          "finding": "A fine-tuned Phi-3 Medium at ICD-10 recall 72% and precision 72% on the institution's own data. Phi-3 Medium is about 14B, which is above the 1B-4B target, so this is evidence for a tuned mid-size model, not for a 4B model. Phi-3 Mini was also tested; numbers for it were not on the abstract page.",
+          "verified": true
+        }
+      ],
+      "why_ft_beats_rag": "The skill is a learned mapping from wording to a code, not a missing fact. Retrieval over the code set gives candidates, but choosing the right code among near-neighbours (for example, specificity and laterality) is a pattern a tuned model can learn from labelled notes. Retrieval alone is what the frontier-model benchmarks largely lack.",
+      "example_input": "Illustrative only: a short clinical phrase such as 'type 2 diabetes with diabetic chronic kidney disease, stage 3' (not from a dataset). Check against the actual CodiEsp or MIMIC note text before using it.",
+      "example_output": "Illustrative only: a list of ICD-10-CM codes that exist in the official code set, each with the supporting text span.",
+      "behavior_spec": "Given a clinical note, the model returns ICD-10-CM codes that exist in the official code table and are supported by a quoted span; a code with no span or a code not in the table fails the case.",
+      "agentic_demo": "Step 1: the SLM reads a note and proposes candidate codes with spans. Step 2: a tool checks each code against the ICD-10-CM table and returns descriptions. Step 3: a second tool (for example a rules engine or a retrieval call over the code table) flags missing specificity. Step 4: the agent writes codes plus spans to a draft claim for a human coder to approve.",
+      "eval": "Micro-precision, recall and F1 of code sets against gold codes (CodiEsp gold, or MIMIC-IV billing codes on credentialed access); plus fraction of outputs that are valid codes in the official table. Compare base, tuned SLM and at least two frontier models on the same held-out notes, with per-code-frequency breakdown.",
+      "risks": "MIMIC-IV needs credentialing before any work starts. CodiEsp is Spanish, so it proves the method, not US-coding accuracy. The main published benchmark (Soroush et al.) measures code querying, not note coding, so the direct frontier number on note coding is not established. Clinical use may need human review and compliance review (not assessed here).",
+      "qlora_feasibility": "CodiEsp is open and small enough for a 4-day build with a 1-2B base. MIMIC-IV credentialing timing is the main schedule risk. Data prep (note to label pairs) is moderate; the label set is large (thousands of codes), so start with the top 50 codes."
+    },
+    {
+      "id": "patient-to-trial-eligibility",
+      "name": "Patient-to-trial eligibility matching (criterion-level)",
+      "industry": "Clinical research operations (site feasibility, patient recruitment)",
+      "task": "Input one patient's note and one trial's eligibility criterion text, and output a label per criterion (eligible, excluded, or not enough information), plus the sentence from the note that supports the label. The SLM learns the criterion-to-note mapping; the retrieval of candidate trials is handled by a separate step.",
+      "why_hard_for_llm": "Criteria are long, nested, and often negated, and the decision depends on exact time windows, lab thresholds and exclusion terms. A frontier model is already close to expert accuracy in one published study (TrialGPT, 87.3% criterion-level), so the frontier gap is narrower here than for the other two candidates. The argument for tuning rests on cost, privacy and latency, not on a large accuracy gap.",
+      "business_value": "Clinical research sites and sponsors who spend coordinator hours screening patients; the measured time saving (42.6% in a pilot user study) is the buyer metric.",
+      "datasets": [
+        {
+          "name": "TREC Clinical Trials 2021 and 2022 (NIST)",
+          "url": "https://trec.nist.gov/pubs/trec31/papers/Overview_trials.pdf",
+          "platform": "Gov",
+          "size": "2022: 50 topics (patient descriptions), about 26,581 considered trials for one cohort in TrialGPT's use; 2021: 75 topics, about 26,149 trials (as used in the TrialGPT paper)",
+          "labels": "Relevance judgments (eligible, excluded, irrelevant) for patient-trial pairs; qrels and topics are published",
+          "license": "not verified",
+          "license_verified": false,
+          "access_gate": "none",
+          "notes": "The NIST catalog lists the 2022 corpus, topics and qrels (data.gov record). The license was not read on the NIST pages, so check before reuse. The 2021 snapshot date is conflicting across sources."
+        },
+        {
+          "name": "TrialGPT patient cohorts (SIGIR 2016, TREC 2021, TREC 2022 subsets)",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11574183",
+          "platform": "Other",
+          "size": "183 synthetic patients across three cohorts (58 + 75 + 50), over 75,000 trial annotations (per the abstract, read via PMC)",
+          "labels": "Criterion-level eligibility annotations by experts",
+          "license": "not verified",
+          "license_verified": false,
+          "access_gate": "unknown",
+          "notes": "Whether the annotated cohorts are downloadable from the paper's data statement was not checked in this pass."
+        }
+      ],
+      "frontier_evidence": [
+        {
+          "source": "Matching patients to clinical trials with large language models (TrialGPT, Nature Communications)",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11574183",
+          "year": 2024,
+          "models_tested": "GPT-4 (version 0613) and GPT-3.5 (version 0613) via Azure OpenAI, temperature 0",
+          "finding": "TrialGPT-Matching criterion-level accuracy 87.3% with faithful explanations, expert accuracy 0.887 to 0.900 (1,015 patient-criterion pairs, manual evaluation). TrialGPT-Retrieval recalls over 90% of relevant trials using under 6% of the collection; average recall at top 500 is 86.2% (GPT-4) and 83.4% (GPT-3.5). A pilot user study (two annotators, six trials, six vignettes) gives an average 42.6% screening-time reduction. Ranking correlation is not a single coefficient in the paper; Table 2 gives NDCG@10 0.7275 for GPT-4.",
+          "directness": "direct",
+          "level": "demonstrated",
+          "verified": true
+        },
+        {
+          "source": "TrialMatchAI: An End-to-End AI-powered Clinical Trial Recommendation System (arXiv 2505.08508, May 2025)",
+          "url": "https://arxiv.org/abs/2505.08508",
+          "year": 2025,
+          "models_tested": "Fine-tuned open-source LLMs (names and sizes not read)",
+          "finding": "Abstract prints: 92 percent of oncology patients had at least one relevant trial in the top 20 recommendations; expert assessment validated over 90 percent accuracy in criterion-level eligibility classification. No NDCG or precision figure on the abstract page.",
+          "directness": "direct",
+          "level": "demonstrated",
+          "verified": true
+        }
+      ],
+      "counterevidence": [
+        {
+          "source": "TrialGPT results are GPT-4 0613, a 2023 model; newer frontier models have not been reported on this task in the sources read",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11574183",
+          "note": "The baseline is already near expert accuracy, so the case for a tuned SLM must come from on-premise privacy, cost per patient, or latency. Measure those; do not claim the frontier fails here."
+        },
+        {
+          "source": "Pilot user study size (TrialGPT)",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11574183",
+          "note": "The 42.6% time saving comes from two annotators, six trials and six vignettes, so it is a pilot signal, not a field result."
+        }
+      ],
+      "small_model_evidence": [
+        {
+          "source": "No verified small-model (at or below 4B) result for patient-to-trial matching was found in this pass",
+          "url": "",
+          "year": 2025,
+          "finding": "TrialMatchAI uses fine-tuned open-source LLMs, but model sizes are not read. This is an evidence gap to close before choosing this candidate.",
+          "verified": false
+        }
+      ],
+      "why_ft_beats_rag": "Retrieval finds candidate trials, but the decision is a judgment over each criterion against the note; retrieval does not produce the label. Tuning the criterion judgment on labelled pairs can make a small model consistent in the label format and the evidence quote, which is the part the frontier model varies on.",
+      "example_input": "Illustrative only: one criterion line such as 'No prior use of an anticoagulant within 30 days' plus a note excerpt (not from TREC or TrialGPT data). Use the real TREC topic and trial text in the build.",
+      "example_output": "Illustrative only: label 'excluded', plus the note sentence that mentions the anticoagulant start date.",
+      "behavior_spec": "Given one criterion and one patient note, the model returns exactly one of eligible, excluded or not-enough-information, and quotes a note sentence for any label other than not-enough-information; a label without a quote fails.",
+      "agentic_demo": "Step 1: a trial search tool (ClinicalTrials.gov API) returns candidate trials for the condition. Step 2: a retrieval step ranks trials for the patient. Step 3: the SLM labels each criterion with a quote. Step 4: a rules check flags missing dates or lab values, and the agent writes a coordinator review sheet.",
+      "eval": "Criterion-level accuracy and macro-F1 against TREC or TrialGPT expert labels; plus quote-support rate (the cited sentence must contain the fact). Compare base, tuned SLM, and at least two frontier models on the same held-out criteria, with identical prompts.",
+      "risks": "The frontier baseline is already strong, so the tuned model may not beat it on accuracy; the value must be cost, privacy or latency. No small-model result was verified. TREC data licence is unverified. Synthetic patients in the benchmarks do not show real-note performance.",
+      "qlora_feasibility": "The criterion-labelling task is narrow and fits a 4-day QLoRA run if labelled pairs are available from TREC qrels. Data prep is moderate (pair construction, criterion splitting). The bigger risk is that the frontier baseline is already good, so the ablation gate may not show a plateau."
+    }
+  ],
+  "rejected": [
+    {
+      "name": "IUPAC-to-SMILES name conversion as a standalone SLM task",
+      "reason": "Likely solved by a deterministic name-to-structure tool (RDKit or a PubChem lookup, not verified here). A tuned model adds little on a task with an exact external answer, so it should be a subtask at most."
+    },
+    {
+      "name": "ICD-10 coding from PLM-ICD-style full-label MIMIC-III training",
+      "reason": "Strong published results exist, but the numbers were not readable on the fetched abstract page (PLM-ICD, arXiv 2207.05289), so they cannot be cited. It also needs MIMIC credentialing, which the candidate above already covers."
+    }
+  ]
+}
