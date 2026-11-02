@@ -20,11 +20,11 @@ every model.
 
 | | Base Qwen3-1.7B | This model | Claude Opus 5.5 (structured CoT) |
 |---|---|---|---|
-| Spec adherence | 6.3% | 81.0% (179/221)* | 84.6% (187/221) |
+| Spec adherence | 6.3% | 80.1% (177/221)* | 84.6% (187/221) |
 | Robustness | 10.0% | 75.0% (45/60)* | 75.0% (45/60) |
-| Asks when the deciding fact is missing (`NEED_INFO` recall) | 0% | 89.2% | 73.0% |
+| Asks when the deciding fact is missing (`NEED_INFO` recall) | 0% | 83.8% | 73.0% |
 
-\*This model (v4 data, 2 epochs) was chosen on the dev set after the sealed test had already been used once (for the
+\*Measured with the one-command check below on these published full-precision weights (the 4-bit development evaluation gave 81.0% / 89.2%). Robustness is from the 4-bit evaluation. This model (v4 data, 2 epochs) was chosen on the dev set after the sealed test had already been used once (for the
 v2 model: 78.7% / 71.7%), so its test numbers are a second look, not a fresh sealed result. Dev: 137/157 clean,
 52/58 robust (single seed).
 

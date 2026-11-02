@@ -4,6 +4,18 @@
 
 A small tariff model should choose among eight supplied HTS candidates and name the deciding attribute using words from the product description. If that attribute is missing, it should return `NEED_INFO` and name the missing dimension. The thesis is that examples of both decisions and justified abstentions can teach this boundary. Candidate retrieval, duty calculations, and final professional classification remain separate responsibilities. This is the approved [behavior specification](../planning/tariff-behavior-and-evals.md), not a claim to automate customs classification end to end.
 
+## How this relates to the research
+
+The ATLAS benchmark (arXiv 2509.18400) asks a model to find the correct 10-digit code among all ~19,949 schedule
+lines; GPT-5-Thinking got 25.0% fully right. This project measures a narrower step: choosing among eight close
+candidates with the correct code guaranteed to be present, or asking for the missing fact. That step is mostly careful
+reading, which frontier models do well (Opus 5.5: 84.6% on the sealed test), so this benchmark does **not** show that
+frontier models fail at the task the research describes. It shows that a 1.7B model trained on CBP-labelled data
+approaches a frontier model on the final decision and asks for missing facts more reliably. Finding the right
+candidates, the hard part ATLAS measures, stays open: plain BM25 retrieval puts the correct code in its top 8 only 4%
+of the time. The descriptions are also model-written summaries of CBP rulings, which state deciding facts more
+plainly than real importer text, so every model's score here likely overstates real-world accuracy.
+
 ## Did data change behavior?
 
 Yes, within the measured task. On the sealed test, Qwen3-1.7B base scored 6.3% spec adherence; the v2 adapter scored 78.7%, against Opus 5.5 structured CoT at 84.6%. Robustness rose from 10.0% to 71.7%, against Opus at 75.0%. All arms received the same candidates; these results measure selection with the gold code available, not retrieval success. [Source: sealed-test head-to-head](../evals/step10-head-to-head-2026-11-01.md).
@@ -32,9 +44,19 @@ Later that night, v4 downsampled gender splits and the knit-to-shape family and 
 
 These are single-seed dev results. A second v2 seed scored 127/157 versus the original 133/157: observed seed variation is about six items, not an estimated uncertainty interval. Qwen3-4B on v2 reached 138/157 clean and 50/58 robust, still short on robustness. The v4 result is promising evidence for confirmation, not a replacement for the sealed-test finding. [Sources: second seed](../../runs/modal/v2-seed8/meta.json), [original v2](../../runs/modal/full-n6543-v2/meta.json), [4B](../../runs/modal/v2-qwen4b/meta.json).
 
+**Last runs of the night (dev only, single seed).** Three epochs on the v4 data: 134/157 clean, 50/58 robust, no gain
+over two epochs. Qwen3-4B on the v4 data with two epochs: 137/157 clean, 52/58 robust, identical to the 1.7B model's
+seed 7, so a 2.4x larger model added nothing once the data mix and training length were right. The published model
+stays the 1.7B v4 two-epoch adapter.
+
+**Grader-reproducible number.** `eval.py --model hf:youngjr1232/tariff-specialist-qwen3-1.7b --eval-set test.jsonl`
+(full-precision weights, run on a Modal GPU) gives 80.1% spec adherence (177/221), 80.4% exact code, 83.8%
+`NEED_INFO` recall, 0 errors. The 4-bit evaluation used during development gave 81.0% (179/221); the difference is
+numeric precision. [Source: `runs/eval-hf-test.log`.]
+
 ## Next steps
 
-[PENDING: confirmation seed]
+**Confirmation seed (v4 plus two epochs, seed 8).** 135/157 clean and 50/58 robust on dev, against 137/157 and 52/58 for seed 7: an average of 136/157 and 51/58, against v2's two seeds at 133 and 127 clean (average 130) and 48 and 48 robust. The gain over v2 (about six clean and three robust items) held across seeds. Both seeds reach the Opus clean reference (135/157); robustness meets the reference (51/58) on average, with one seed a single item short. [Source: `runs/modal/v4-rebal-2ep-seed8/meta.json`.]
 
 **Test second look (v4 plus two epochs, chosen on dev before this look).** On the 221 sealed-test items it scored 81.0% spec adherence (179/221) against v2's 78.7% (174/221) and Opus's 84.6% (187/221); robustness 75.0% (45/60), tying Opus (45/60); `NEED_INFO` recall 89.2% against Opus's 73.0%. The dev gain carried over (+5 clean, +2 robust over v2), but the model remains 8 items short of Opus on clean adherence, so bar B is still not met on test, and it again fell from dev (87.3%) to test (81.0%). Because the test set had already informed the bar decision, this is a second look, not a fresh sealed result. [Source: `runs/modal/test2-v4-rebal-2ep/`.]
 

@@ -19,10 +19,10 @@ Source of every row: `Gauntlet AI/course-material/2026-10-27-week7-train-your-ow
 ## Final submission (Sunday noon)
 | Requirement | Status | Evidence |
 |---|---|---|
-| Dataset published | ☐ | |
-| Model on HF Hub (public) + running inference demo | ☐ | |
-| Eval harness + results, base vs tuned, own set and staff held-out set | ◐ | Own sealed test (221 + 60), `docs/evals/step10-head-to-head-2026-11-01.md`: base 6.3% → tuned 78.7% spec (Opus 84.6%); robustness 10.0% → 71.7% (Opus 75.0%). Bar B not met. Staff held-out set not yet received |
+| Dataset published | ☑ | https://huggingface.co/datasets/youngjr1232/tariff-slm-hts-61-62-64 (HF commit `03edafdeb1168bc5c01bb0c5adcada11e6416c14`), provenance card + checksums |
+| Model on HF Hub (public) + running inference demo | ☑ | https://huggingface.co/youngjr1232/tariff-specialist-qwen3-1.7b (weights commit `ba966b95f65fb5b748d14d39fa94ab506d624706`, card `4dc89636`); live demo `modal run train/modal_app.py --mode predict --adapter v4-rebal-2ep --subheading <6-digit> --description "..."` |
+| Eval harness + results, base vs tuned, own set and staff held-out set | ◐ | Sealed test (221 + 60): base 6.3% → tuned 80.1% (one command; 4-bit eval 81.0%), robustness 75.0% (Opus 84.6% / 75.0%) — `docs/evals/step10-head-to-head-2026-11-01.md`, `docs/delivery/brainlift.md`. Staff held-out set not received |
 | Full data-efficiency curve (≥4 checkpoints) with justified minimum N | ◐ | 5 checkpoints done; still rising at the full set and below the bar (86.0% / 87.9%), so a minimum N that holds the behavior is not yet found |
-| Brainlift | ☐ | |
+| Brainlift | ☑ | `docs/delivery/brainlift.md` |
 | 3–5 min demo video incl. a live grader-supplied prompt | ☐ | |
-| Verification: public checkpoint + commit hash; `eval.py --model --eval-set` one command; raw judge JSONL; pinned versions; ablation scripts and logs | ☐ | |
+| Verification: public checkpoint + commit hash; `eval.py --model --eval-set` one command; raw judge JSONL; pinned versions; ablation scripts and logs | ☑ | `eval.py --model hf:youngjr1232/tariff-specialist-qwen3-1.7b --eval-set data/processed/test.jsonl` → 80.1% (177/221), 0 errors (`runs/eval-hf-test.log`); judge JSONL in `runs/prompt-ceiling-*/cells/*/judge.jsonl`; versions in `runs/modal/*/meta.json`; ablation `scripts/prompt_ceiling.py` |

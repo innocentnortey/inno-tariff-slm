@@ -254,10 +254,43 @@ def publish_dataset(repo_name: str) -> dict:
     return {"repo_id": repo_id, "commit": getattr(info, "oid", None) or str(info)}
 
 
+@app.function(image=image.add_local_file(ROOT / "eval.py", "/root/eval.py"), gpu="H100", timeout=3600)
+def eval_hf(repo: str, eval_set: str = "test.jsonl", limit: int = 0) -> dict:
+    """Run the grader's one-command check, `eval.py --model hf:<repo> --eval-set <file>`, on a GPU."""
+    import subprocess
+    cmd = ["python", "/root/eval.py", "--model", f"hf:{repo}", "--eval-set", f"/root/data/{eval_set}", "--out", "/tmp/runs"]
+    if limit:
+        cmd += ["--limit", str(limit)]
+    r = subprocess.run(cmd, cwd="/root", capture_output=True, text=True)
+    return {"cmd": " ".join(cmd), "returncode": r.returncode, "stdout": r.stdout[-3000:], "stderr": r.stderr[-1500:]}
+
+
+@app.function(image=image.add_local_dir(ROOT / "train" / "hf", "/root/hf"), timeout=600,
+              secrets=[modal.Secret.from_name("huggingface")])
+def upload_card(repo_id: str) -> str:
+    """Replace only the model card (README.md) of a published model repo."""
+    import os
+    from huggingface_hub import HfApi
+    info = HfApi(token=os.environ["HF_TOKEN"]).upload_file(path_or_fileobj="/root/hf/MODEL_CARD.md",
+                                                           path_in_repo="README.md", repo_id=repo_id,
+                                                           commit_message="Model card: grader-reproducible numbers")
+    return getattr(info, "oid", None) or str(info)
+
+
 @app.local_entrypoint()
 def main(mode: str = "smoke", description: str = "", subheading: str = "", n: int = 0, max_steps: int = 0, eval_limit: int = 0, adapter: str = "", name: str = "",
          train_file: str = "train.jsonl", dev_file: str = "dev.jsonl", robust_file: str = "dev_robust.jsonl",
          epochs: int = 1, base_model: str = BASE_MODEL, seed: int = 7):
+    if mode == "upload-card":
+        print(upload_card.remote(name or "youngjr1232/tariff-specialist-qwen3-1.7b"))
+        return
+    if mode == "eval-hf":
+        r = eval_hf.remote(name or "youngjr1232/tariff-specialist-qwen3-1.7b", dev_file, eval_limit)
+        print(r["cmd"], "-> exit", r["returncode"])
+        print(r["stdout"])
+        if r["returncode"]:
+            print(r["stderr"])
+        return
     if mode == "publish-dataset":
         print(json.dumps(publish_dataset.remote(name or "tariff-slm-hts-61-62-64"), indent=1))
         return

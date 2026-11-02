@@ -1,6 +1,6 @@
 # Results and reproduction
 
-HF model: <to be filled>
+HF model: [`youngjr1232/tariff-specialist-qwen3-1.7b`](https://huggingface.co/youngjr1232/tariff-specialist-qwen3-1.7b) (commit `ba966b95f65fb5b748d14d39fa94ab506d624706`); dataset: [`youngjr1232/tariff-slm-hts-61-62-64`](https://huggingface.co/datasets/youngjr1232/tariff-slm-hts-61-62-64) (commit `03edafdeb1168bc5c01bb0c5adcada11e6416c14`)
 
 ## Sealed-test and dev results
 
