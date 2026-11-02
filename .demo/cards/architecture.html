@@ -1,0 +1,16 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Architecture</title><style>
+body{margin:0;width:1600px;height:820px;background:#0f1418;color:#e8eef0;font:20px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:56px 90px;box-sizing:border-box}
+#__demo_cursor{display:none!important}.k{color:#5fc2b6;letter-spacing:.08em;text-transform:uppercase;font-size:17px}h1{font-size:40px;margin:6px 0 30px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.c{border:1px solid #2a3940;border-radius:14px;padding:20px;background:#152027}.c.m{border-color:#5fc2b6;background:#11272a}.c.open{border-style:dashed}
+.c b{display:block;color:#fff;font-size:20px;margin-bottom:6px}.c p{margin:0;font-size:17px;color:#cfe3e0}.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;margin-bottom:8px;background:#2a3940}.c.m .tag{background:#5fc2b6;color:#0f1418}
+.row2{margin-top:26px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}</style></head><body>
+<div class="k">How it's built</div><h1>Code decides what code can; one small model decides the rest</h1>
+<div class="grid">
+<div class="c open"><span class="tag">CODE · OPEN</span><b>Candidate shortlist</b><p>Eight closest schedule lines. Plain keyword search finds the right code only 4% of the time — the next thing to build.</p></div>
+<div class="c m"><span class="tag">MODEL</span><b>Specialist, 1.7B</b><p>Qwen3-1.7B fine-tuned with QLoRA on Modal. Returns one JSON answer: pick and quote, or ask.</p></div>
+<div class="c"><span class="tag">CODE</span><b>Checks</b><p>Valid JSON, a listed code, a quote that really appears in the description.</p></div>
+<div class="c"><span class="tag">PERSON</span><b>Review</b><p>A licensed broker approves; the model never makes the legal call.</p></div></div>
+<div class="row2">
+<div class="c"><span class="tag">DATA</span><b>Labels from CBP</b><p>Codes from real customs rulings, never from a model. Three label-review rounds.</p></div>
+<div class="c"><span class="tag">DATA</span><b>Ask examples</b><p>Copies with the deciding fact removed teach the model to ask.</p></div>
+<div class="c"><span class="tag">EVAL</span><b>Sealed test</b><p>221 rulings from 2024–2025, same candidates for every model, frontier baseline included.</p></div></div></body></html>

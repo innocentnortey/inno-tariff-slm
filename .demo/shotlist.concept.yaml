@@ -1,0 +1,211 @@
+project: "Tariff Specialist SLM concept"
+tagline: "A small trained model that chooses between close tariff codes, or asks"
+url: http://127.0.0.1:8811/tariff-compliance-vision.html
+dev:
+  command: 'python3 -m http.server 8811 --bind 127.0.0.1 --directory "../Gauntlet AI/docs/research"'
+  url: http://127.0.0.1:8811/tariff-compliance-vision.html
+  ready_timeout: 30
+viewport: {width: 1600, height: 820}
+show_requirement: false
+caption_band:
+  height: 80
+  background: "#0f1418"
+  label: "Concept stage · nothing trained yet"
+voice:
+  model: eleven_multilingual_v2
+  speed: 0.9
+  stability: 0.45
+  similarity_boost: 0.8
+  style: 0.2
+card_theme: {background: "#0f1418", accent: "#5fc2b6"}
+
+scenes:
+  - id: intro
+    type: card
+    title: "An AI trade-compliance analyst that knows when to ask"
+    subtitle: "Gauntlet AI · Week 7 · Train Your Own Small Language Model · concept stage"
+    lines: ["A small fine-tuned model chooses between close tariff codes, or asks for the missing fact", "Nothing is trained yet: this is the plan and the evidence behind it"]
+    narration: |
+      It's filing week at a mid size apparel and footwear importer. The classification specialist has new styles. Every import needs a ten digit tariff code, and the importer is legally responsible. I'm proposing a human supervised analyst with a small model. No model has been trained yet.
+
+  - id: problem
+    evidence: ["../Gauntlet AI/docs/planning/tariff-project-prd.md"]
+    before:
+      - goto: /tariff-compliance-vision.html
+      - eval: "document.documentElement.style.scrollBehavior = 'auto'; document.getElementById('present').click(); document.getElementById('problem').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: |
+      There are nineteen thousand nine hundred forty nine ten digit lines. Small details decide the last four digits. A scarf with at least seventy percent silk gets one point two percent duty, versus three point nine for other silk. G P T five Thinking got a quarter of full codes right on two hundred rulings in Atlas twenty twenty five. A wrong code means wrong duty on every shipment.
+    actions:
+      - wait: 3
+      - scroll: '#problem .ladder'
+      - at: 10.3
+      - highlight: {selector: '#problem .split', seconds: 3}
+      - at: 18.5
+      - scroll: '#problem .grid.g3'
+      - highlight: {selector: '#problem .grid.g3 .card:nth-child(3)', seconds: 3}
+
+  - id: vision
+    evidence: ["../Gauntlet AI/docs/planning/tariff-project-prd.md"]
+    before:
+      - eval: "document.getElementById('vision').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: |
+      My proposed workflow reads documents, extracts product details, and retrieves codes and past U.S. Customs rulings. The specialist would choose or ask, code would calculate duty, and a licensed person would approve. It would never make a binding decision.
+    actions:
+      - wait: 4
+      - scroll: {y: 300}
+
+  - id: journey_attributes
+    evidence: ["../Gauntlet AI/docs/research/tariff-compliance-vision.html", "docs/data/README.md"]
+    before:
+      - eval: "document.querySelectorAll('#scen button')[0].click(); document.querySelectorAll('#steps button')[0].click(); document.getElementById('journey').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: |
+      Here, the mock follows a real women's knit shrug from China, ninety four percent polyester and six percent elastane. It shows the extracted details beside eight close codes, all at fourteen point nine percent. The products, codes, and rates are real. The analyst's outputs are hand written.
+    actions:
+      - wait: 2.5
+      - scroll: '#steps'
+      - at: 5.9
+      - click: '#steps button >> nth=1'
+      - at: 12.2
+      - click: '#steps button >> nth=2'
+      - wait: 1
+      - scroll: {y: 220}
+
+  - id: journey_decision
+    evidence: ["../Gauntlet AI/docs/planning/tariff-behavior-and-evals.md"]
+    before:
+      - eval: "document.getElementById('steps').scrollIntoView({block: 'start'}); window.scrollBy(0, -90)"
+    narration: |
+      The closest pair differs only on who wears it. The description says Woman's, so my example chooses the women's line and names that clue and the runner up. That choice is written by hand, not a model result.
+    actions:
+      - click: '#steps button >> nth=3'
+      - wait: 1.5
+      - highlight: {selector: '#panel pre.json', seconds: 3}
+      - at: 7.6
+      - highlight: {selector: '#panel .cand.gold', seconds: 3}
+
+  - id: journey_ask
+    evidence: ["../Gauntlet AI/docs/planning/tariff-behavior-and-evals.md"]
+    before:
+      - eval: "document.getElementById('steps').scrollIntoView({block: 'start'}); window.scrollBy(0, -90)"
+    narration: |
+      But the shoe description leaves out who wears it. The two best lines say for women and for men. Here I want need info, followed by one question to the supplier. Asking for the missing fact instead of guessing is the difference I'm testing.
+    actions:
+      - click: '#scen button >> nth=1'
+      - wait: 0.8
+      - click: '#steps button >> nth=3'
+      - wait: 1.5
+      - highlight: {selector: '#panel pre.json', seconds: 2.5}
+      - at: 8.5
+      - highlight: {selector: '#panel blockquote', seconds: 3.5}
+
+  - id: journey_review
+    evidence: ["../Gauntlet AI/docs/planning/tariff-architecture.md"]
+    before:
+      - eval: "document.getElementById('steps').scrollIntoView({block: 'start'}); window.scrollBy(0, -90)"
+    narration: |
+      For the shrug, plain code would calculate duty using invented value and quantity. The ruling also notes an extra China duty that a duty service must look up. A reviewer could approve, edit, or escalate, with evidence. A person decides.
+    actions:
+      - click: '#scen button >> nth=0'
+      - wait: 0.8
+      - click: '#steps button >> nth=5'
+      - wait: 1.2
+      - highlight: {selector: '#panel .calc', seconds: 3}
+      - at: 8.7
+      - click: '#steps button >> nth=6'
+      - wait: 1.2
+      - highlight: {selector: '#panel .reco', seconds: 3}
+
+  - id: why_slm
+    evidence: ["../Gauntlet AI/docs/planning/tariff-behavior-and-evals.md"]
+    before:
+      - eval: "document.getElementById('why-slm').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: |
+      I'd train one narrow behavior. Given a description and eight candidates, choose one and quote the deciding detail, or say need info and name what's missing. Never cite an unstated fact. Retrieval supplies facts. I suspect past rulings can teach this pattern. Atlas fine tuned a seventy billion parameter model from about two to forty percent at ten digits. Whether one to four billion parameters can do it, with cost, speed, privacy, and consistency benefits, remains a hypothesis.
+    actions:
+      - wait: 2.5
+      - scroll: '#why-slm .spec'
+      - highlight: {selector: '#why-slm .spec', seconds: 3.5}
+      - at: 13.7
+      - scroll: '#why-slm .grid.g2'
+      - at: 20.2
+      - scroll: '#why-slm .tbl'
+      - at: 27.7
+      - scroll: '#why-slm .grid.g4'
+
+  - id: data
+    evidence: ["../Gauntlet AI/docs/planning/tariff-data-training.md", "docs/data/README.md"]
+    before:
+      - eval: "document.getElementById('data').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: |
+      U.S. Customs publishes binding rulings with its own labels. The starting pool has nine thousand five hundred sixty six apparel and footwear rulings. My plan drops obsolete codes, trains through twenty twenty two, and tests on twenty twenty four through twenty twenty five. Deciding details would come from where sibling codes first differ in the schedule. Removing details would create ask cases, without teacher model labels.
+    actions:
+      - wait: 2
+      - scroll: '#data .tbl'
+      - at: 9.0
+      - scroll: '#data .grid.g4'
+      - highlight: {selector: '#data .grid.g4', seconds: 3}
+      - at: 17.4
+      - scroll: '#data .pipe'
+      - highlight: {selector: '#data .pipe', seconds: 3.5}
+
+  - id: architecture
+    evidence: ["../Gauntlet AI/docs/planning/tariff-architecture.md"]
+    before:
+      - eval: "document.getElementById('architecture').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: |
+      Each part would own one kind of decision. Language models handle language, code handles rules and arithmetic, and a person owns the final call. The specialist must stay within its code list. No model touches duty numbers. Effective dates, origin duties, and old rulings still need work.
+    actions:
+      - wait: 1.5
+      - scroll: '#arch'
+      - at: 4.4
+      - click: '#arch g.node[data-id="slm"]'
+      - wait: 1
+      - highlight: {selector: '#arch-detail', seconds: 3}
+      - at: 10.4
+      - click: '#arch g.node[data-id="duty"]'
+      - wait: 1.5
+      - at: 13.9
+      - scroll: '#architecture .grid.g2'
+      - highlight: {selector: '#architecture .grid.g2 .card:nth-child(2)', seconds: 3}
+
+  - id: evaluation
+    evidence: ["../Gauntlet AI/docs/planning/tariff-behavior-and-evals.md", "docs/data/README.md"]
+    before:
+      - eval: "document.getElementById('evaluation').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: |
+      I'd compare every model on the same eight candidates. My first test spans two frontier families, three prompting styles, and over thirty scenarios each. It hasn't run. The tuned model's proposed bar is a twenty point gain over its base in following the spec on held out rulings, with at least seventy percent recall for missing facts and at most ten percent needless questions. If prompting solves it, I'll narrow the behavior.
+    actions:
+      - wait: 2
+      - scroll: '#evaluation .ceiling'
+      - highlight: {selector: '#evaluation .ceiling', seconds: 3}
+      - at: 11.7
+      - scroll: '#evaluation .check'
+      - highlight: {selector: '#evaluation .check', seconds: 4}
+      - at: 24.8
+      - scroll: '#evaluation .ceiling'
+      - highlight: {selector: '#evaluation .ceiling + .note', seconds: 3}
+
+  - id: status
+    evidence: ["../Gauntlet AI/docs/planning/tariff-execution-plan.md"]
+    before:
+      - eval: "document.getElementById('evaluation').scrollIntoView({block: 'start'}); window.scrollBy(0, -10)"
+    narration: |
+      Only rule baselines have run, with attribute rules at about twenty one percent. Business value is unmeasured. This package does not yet meet the early submission evidence requirements. It sets the direction. Across nine stages, next comes prompting, then data, the first fine tune, and a four point data curve.
+    actions:
+      - scroll: '#bars'
+      - highlight: {selector: '#bars', seconds: 3}
+      - at: 5.6
+      - scroll: '#status .grid.g2'
+      - highlight: {selector: '#status .grid.g2 .card:nth-child(2)', seconds: 3.5}
+      - at: 11.5
+      - scroll: '#road'
+      - wait: 1
+      - scroll: {y: 300}
+
+  - id: outro
+    type: card
+    title: "Choose between close codes, or ask"
+    subtitle: "A small specialist inside a human-supervised trade-compliance analyst"
+    lines: ["Next: the prompt-ceiling test on the same candidates", "Repo: labs.gauntletai.com · innocentnortey · inno-tariff-slm"]
+    narration: |
+      My goal is a small specialist that chooses between close tariff codes or asks, with human oversight. Next, I'll run the prompting test.

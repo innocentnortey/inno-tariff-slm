@@ -2,7 +2,22 @@
 
 ## Behavior thesis
 
-A small tariff model should choose among eight supplied HTS candidates and name the deciding attribute using words from the product description. If that attribute is missing, it should return `NEED_INFO` and name the missing dimension. The thesis is that examples of both decisions and justified abstentions can teach this boundary. Candidate retrieval, duty calculations, and final professional classification remain separate responsibilities. This is the approved [behavior specification](../planning/tariff-behavior-and-evals.md), not a claim to automate customs classification end to end.
+**A trained small model can refuse to guess more reliably than a prompted frontier model.** Given a product
+description and eight close HTS candidates, the specialist selects one code and quotes the deciding fact from the
+description, or returns `NEED_INFO` and names the missing fact, so a broker can ask the supplier before filing. For a
+compliance tool, a confident wrong code is worse than a question: it puts the wrong duty on every shipment.
+
+**What the evidence shows.** On the sealed test (221 rulings from 2024–2025), the tuned 1.7B model asks when the
+deciding fact is missing 84–89% of the time against 73.0% for Claude Opus 5.5 with its best prompt, asks on 11 of 13
+natural missing-fact cases against 6 of 13, and asks unnecessarily on 1.6% of decidable items against 3.3%. It ties
+Opus on robustness (75.0%) and trails it on picking the code (80.1% against 84.6%).
+
+**How this changed from the plan.** The project set out to show a small model beating frontier models at
+classification. That did not pan out in this benchmark, for the reason in the next section, and the measured
+strength turned out to be calibrated abstention. Retrieval, duty calculation and the final professional
+determination remain separate responsibilities. This is the approved
+[behavior specification](../planning/tariff-behavior-and-evals.md), not a claim to automate customs classification
+end to end.
 
 ## How this relates to the research
 

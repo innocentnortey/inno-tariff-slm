@@ -2,13 +2,13 @@
 """Drop Codex's narration blocks into the shot-list template, verbatim.
 
 Usage: python3 .demo/build_shotlist.py
-Reads docs/delivery/2026-10-30-concept-narration.md (blocks marked `<!-- scene: id -->` between the START/END markers)
+Reads docs/delivery/2026-11-01-demo-narration.md (blocks marked `<!-- scene: id -->` between the START/END markers)
 and .demo/shotlist.template.yaml (scenes carry `narration: "@@id"`), writes .demo/shotlist.yaml.
 """
 import re, sys, pathlib
 
 root = pathlib.Path(__file__).resolve().parent.parent
-narr = (root / "docs/delivery/2026-10-30-concept-narration.md").read_text()
+narr = (root / "docs/delivery/2026-11-01-demo-narration.md").read_text()
 body = narr.split("<!-- NARRATION START -->", 1)[1].split("<!-- NARRATION END -->", 1)[0]
 blocks = {}
 for m in re.finditer(r"<!-- scene: (\w+) -->(.*?)(?=<!-- scene:|\Z)", body, re.S):
