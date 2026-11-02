@@ -37,10 +37,14 @@ def load(model: str, max_tokens: int = 512, temperature: float = 0.0, effort: st
         tok = AutoTokenizer.from_pretrained(name)
         m = AutoModelForCausalLM.from_pretrained(name, torch_dtype="auto", device_map="auto")
         def run(msgs):
-            ids = tok.apply_chat_template(msgs, add_generation_prompt=True, return_tensors="pt", enable_thinking=False).to(m.device)
+            # Render to text, then tokenize: the same path as train/modal_app.py, and stable across transformers 4/5
+            # (in 5.x, apply_chat_template(return_tensors=...) returns a mapping, not a tensor).
+            text = tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False, enable_thinking=False)
+            enc = tok(text, return_tensors="pt").to(m.device)
             with torch.no_grad():
-                out = m.generate(ids, max_new_tokens=max_tokens, do_sample=temperature > 0, temperature=temperature or None)
-            return tok.decode(out[0, ids.shape[1]:], skip_special_tokens=True)
+                out = m.generate(**enc, max_new_tokens=max_tokens, do_sample=temperature > 0,
+                                 temperature=temperature or None, pad_token_id=tok.eos_token_id)
+            return tok.decode(out[0, enc["input_ids"].shape[1]:], skip_special_tokens=True)
         return run
     if kind == "anthropic":
         import anthropic

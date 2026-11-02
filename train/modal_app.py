@@ -234,10 +234,33 @@ def publish(adapter: str, repo_name: str, base_model: str = BASE_MODEL) -> dict:
     return {"repo_id": repo_id, "commit": getattr(info, "oid", None) or str(info), "adapter": adapter}
 
 
+@app.function(image=image.add_local_dir(ROOT / "train" / "hf", "/root/hf"), timeout=1800,
+              secrets=[modal.Secret.from_name("huggingface")])
+def publish_dataset(repo_name: str) -> dict:
+    """Upload the training and frozen eval files, checksums and dataset card as a public HF dataset."""
+    import os
+    import shutil
+    from huggingface_hub import HfApi
+    api = HfApi(token=os.environ["HF_TOKEN"])
+    repo_id = f"{api.whoami()['name']}/{repo_name}"
+    out = Path("/tmp/dataset")
+    out.mkdir(exist_ok=True)
+    for f in ("train_v2.jsonl", "train_v4.jsonl", "dev.jsonl", "dev_robust.jsonl", "test.jsonl", "test_robust.jsonl"):
+        shutil.copy(f"/root/data/{f}", out / f)
+    shutil.copy("/root/hf/CHECKSUMS.sha256", out / "CHECKSUMS.sha256")
+    shutil.copy("/root/hf/DATASET_CARD.md", out / "README.md")
+    api.create_repo(repo_id, repo_type="dataset", private=False, exist_ok=True)
+    info = api.upload_folder(repo_id=repo_id, repo_type="dataset", folder_path=str(out), commit_message="Dataset v4")
+    return {"repo_id": repo_id, "commit": getattr(info, "oid", None) or str(info)}
+
+
 @app.local_entrypoint()
 def main(mode: str = "smoke", description: str = "", subheading: str = "", n: int = 0, max_steps: int = 0, eval_limit: int = 0, adapter: str = "", name: str = "",
          train_file: str = "train.jsonl", dev_file: str = "dev.jsonl", robust_file: str = "dev_robust.jsonl",
          epochs: int = 1, base_model: str = BASE_MODEL, seed: int = 7):
+    if mode == "publish-dataset":
+        print(json.dumps(publish_dataset.remote(name or "tariff-slm-hts-61-62-64"), indent=1))
+        return
     if mode == "publish":
         print(json.dumps(publish.remote(adapter, name or "tariff-specialist-qwen3-1.7b", base_model), indent=1))
         return
