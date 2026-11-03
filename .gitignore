@@ -8,3 +8,5 @@ runs/
 hf_cache/
 docs/artifacts/*.mp4
 .DS_Store
+checkpoints/
+data/benchmark*/

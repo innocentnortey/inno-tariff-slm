@@ -18,6 +18,8 @@ Research imported from the sibling `Gauntlet AI` project on **2026-11-01**. Star
 
 ## Current project plans and measurements
 
+- **Benchmark v2 results (2026-11-02): [results-v2](../evals/results-v2.md)**, protocol [benchmark-protocol](../evals/benchmark-protocol.md), roadmap [tariff-research-roadmap](../planning/tariff-research-roadmap.md)
+
 Use the local planning documents for the current proposed implementation; earlier research is historical context.
 
 - [Product requirements](../planning/tariff-project-prd.md)

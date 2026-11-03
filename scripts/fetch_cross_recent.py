@@ -47,6 +47,7 @@ def main() -> int:
     ap.add_argument("--delay", type=float, default=0.25)
     ap.add_argument("--tail-from", type=int, default=361000)
     ap.add_argument("--max-misses", type=int, default=1500)
+    ap.add_argument("--known", help="file of N-numbers to skip (one per line), e.g. rulings already in the HF corpus")
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -56,12 +57,19 @@ def main() -> int:
         done |= {int(json.loads(l)["rulingNumber"][1:]) for l in open(hits_f, encoding="utf-8")}
     if miss_f.exists():
         done |= {int(l) for l in open(miss_f) if l.strip()}
+    if a.known:
+        done |= {int(l) for l in open(a.known) if l.strip()}
     streak, hits = 0, 0
     with open(hits_f, "a", encoding="utf-8") as hf, open(miss_f, "a") as mf:
         for n in range(a.start, a.stop):
             if n in done:
                 continue
-            rec = fetch(n)
+            try:
+                rec = fetch(n)
+            except RuntimeError as e:  # transient failure: leave unrecorded so a rerun retries it
+                print(f"error {e}", flush=True)
+                time.sleep(30)
+                continue
             if rec is None:
                 mf.write(f"{n}\n")
                 streak += 1

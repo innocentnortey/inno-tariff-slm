@@ -2,6 +2,26 @@
 
 Source of every row: `Gauntlet AI/course-material/2026-10-27-week7-train-your-own-slm-brief.md`. Status: ☐ not started · ◐ in progress · ☑ done (with evidence link).
 
+## Version 2 — open-set classification (2026-11-02, current)
+
+The earlier version always placed the correct code among eight supplied candidates. Version 2 replaces that with an
+open-set benchmark (any of ~19,800 HTSUS lines; fresh CBP rulings; no answer in the input). Results:
+[`docs/evals/results-v2.md`](docs/evals/results-v2.md).
+
+| Requirement | Status | Evidence |
+|---|---|---|
+| Dataset published | ☑ | https://huggingface.co/datasets/youngjr1232/tariff-hts-openset-v2 (commit `4797cce5f131cbaea40f76420203f7847bd5f21e`), card + checksums |
+| Model on HF Hub (public) | ☑ | https://huggingface.co/youngjr1232/tariff-classifier-qwen3-4b (commit `4eb6e2029468a5ce8eda708c1664228856c63cd2`), merged bf16 |
+| Running inference demo | ☑ | https://youngjr1232--tariff-classifier-demo-web.modal.run (key in Keychain `tariff-demo-key`); base vs tuned side by side on the same evidence |
+| Eval harness + results, base vs tuned | ☑ | Final test 500: base 42.0% → tuned 59.8% (+17.8, CI +13.6 to +22.0); Opus 71.6%. `scripts/eval_openset.py`, `train/modal_openset.py`, `scripts/compare_runs.py` |
+| Latency and cost | ☑ | Single request: 0.89 s (H100) / 1.74 s (A10G) vs Opus 9.9 s; `runs/latency/` |
+| Brainlift | ☑ | [`docs/delivery/brainlift-v2.md`](docs/delivery/brainlift-v2.md) |
+| Data-efficiency curve (≥4 checkpoints) with justified minimum N | ☐ | Not run for version 2 |
+| 3–5 min demo video incl. a live grader-supplied prompt (base vs tuned) | ☐ | Demo supports it; video not recorded for version 2 |
+| Staff held-out set | ☐ | Not received |
+
+## Version 1 — eight-candidate selection (2026-11-01, historical)
+
 ## Early submission (Thursday midnight)
 | Requirement | Status | Evidence |
 |---|---|---|

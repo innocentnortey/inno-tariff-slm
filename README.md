@@ -1,3 +1,18 @@
+# Tariff classifier SLM
+
+**Current version (2026-11-02): open-set 10-digit HTSUS classification.** A fine-tuned Qwen3-4B, given a product
+description plus retrieved CBP rulings and HTSUS lines, returns the exact 10-digit code. Final test (500 fresh CBP
+rulings): base 42.0% → **tuned 59.8%**, Claude Opus 5.5 71.6%; about 11× faster per request and ~150× cheaper in bulk
+than Opus.
+
+- Results and reproduce: [`docs/evals/results-v2.md`](docs/evals/results-v2.md)
+- Model: https://huggingface.co/youngjr1232/tariff-classifier-qwen3-4b
+- Dataset: https://huggingface.co/datasets/youngjr1232/tariff-hts-openset-v2
+- Live demo: https://youngjr1232--tariff-classifier-demo-web.modal.run (key required)
+- Instructor summary: [`docs/artifacts/2026-11-02-instructor-summary.pdf`](docs/artifacts/2026-11-02-instructor-summary.pdf)
+
+---
+
 # Tariff Specialist SLM — concept stage
 
 **Live concept page:** https://inno-tariff-slm.onrender.com (Render static site `srv-dbi2uetg1s2s73drae0g`, auto-deploys from GitHub `main`)

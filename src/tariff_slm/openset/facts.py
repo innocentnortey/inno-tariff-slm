@@ -21,7 +21,7 @@ _LEAK = re.compile(
     r"|\bchapters? \d|\bsection [IVX]+\b|\bnotes? \d|\bclassif|\bsuggest|\bpropos|\bduty|\bduties\b|\bCBP\b"
     r"|\bruling|\bprotest|\bliquidat|\bentr(?:y|ies)\b|Customs|\bsamples? (?:was|were|is|will|has|have)\b"
     r"|returned|for (?:our|your) review|you requested|your (?:letter|request|inquiry|submission)|requested a"
-    r"|on behalf of|information was provided|provided (?:via|by) (?:e-?mail|telephone)|Dear |Sincerely|National Import Specialist|19 C\.?F\.?R|country of origin|\bstatistical\b",
+    r"|on behalf of|confidential|withheld|published version|information was provided|provided (?:via|by) (?:e-?mail|telephone)|Dear |Sincerely|National Import Specialist|19 C\.?F\.?R|country of origin|\bstatistical\b",
     re.I)
 _SENT = re.compile(r"(?<=[.!?])[\"”’)]?\s+(?=[A-Z“\"(])")
 _WS = re.compile(r"\s+")
@@ -37,7 +37,7 @@ def sentences(text: str) -> list[str]:
 def _fact_span(text: str) -> str:
     """The part of the letter that describes the goods: HQ FACTS section, else everything after the request line."""
     t = _WS.sub(" ", text)
-    m = re.search(r"\bFACTS?\s*:\s*(.*?)(?:\bISSUES?\s*:|\bLAW AND ANALYSIS\s*:|$)", t, re.S)
+    m = re.search(r"\bFACTS?\s*:?\s+(?=[A-Z“\"])(.*?)(?:\bISSUES?\s*:?\s|\bLAW AND ANALYSIS\b|$)", t, re.S)
     if m and len(m.group(1).split()) >= MIN_WORDS:
         return m.group(1)
     m = re.search(r"you requested a (?:binding |tariff )*(?:classification )?ruling[^.]*\.", t, re.I)
@@ -76,3 +76,28 @@ def leaks_code(description: str, code10: str) -> bool:
     d = re.sub(r"\D", " ", description)
     flat = re.sub(r"\D", "", description)
     return code10[:6] in flat or bool(re.search(rf"(?<!\d){code10[:4]}(?!\d)", d))
+
+
+_BOILER = re.compile(r"rate of duty|Section 301|9903\.|Chapter 99|Part 177|This ruling is being issued|contact National"
+                     r"|If you have any questions|Sincerely|subject to periodic amendment|ustr\.gov|cbp\.gov|reasonable care"
+                     r"|[Dd]uty rate|Duty rates|most recent HTSUS|World Wide Web|hts\.usitc|copy of the ruling|control number"
+                     r"|\bDirector\b|^Pursuant to U\.S\.$|entry documents",
+                     re.I)
+
+
+def analysis_text(text: str, max_words: int = 220) -> str:
+    """CBP's own legal reasoning: the sentences from where the analysis starts, minus duty and letter boilerplate.
+
+    Teacher-only evidence for writing rationales; never shown to the student model."""
+    sents = sentences(_fact_span(text))
+    start = next((i for i, s in enumerate(sents) if _STOP.search(s)), len(sents))
+    out, n = [], 0
+    for s in sents[start:]:
+        if _BOILER.search(s):
+            continue
+        w = len(s.split())
+        if n + w > max_words and out:
+            break
+        out.append(s)
+        n += w
+    return " ".join(out)
