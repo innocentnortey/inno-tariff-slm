@@ -65,6 +65,26 @@ So the small model answers **about 11× faster than Opus on an H100 and about 6�
 
 Dev and test agree within half a point for both the tuned model and Opus, so the dev choices carried over.
 
+## Data-efficiency curve (dev, 300 items, `rag`; 2026-11-02)
+
+Same recipe as try 1 (base model, LoRA r=16, lr 2e-4, one epoch), nested subsets of the same shuffled training rulings
+(`modal_openset.py --mode train --n N`; each subset is a prefix of the next). Comparison file:
+`runs/data-efficiency-curve-v2.json`.
+
+| Training rulings (after length filter) | Optimizer steps | Exact 10-digit | − base (95% CI) | − full 19,141 (95% CI) |
+|---|---|---|---|---|
+| 0 (base) | 0 | 42.0% | — | — |
+| 2,356 | 148 | 52.3% | +10.3 (+5.7 to +15.0) | −5.3 (−9.0 to −2.0) |
+| 4,716 | 295 | 53.3% | +11.3 (+6.3 to +16.3) | −4.3 (−7.0 to −1.7) |
+| **9,431** | 590 | **56.3%** | +14.3 (+9.3 to +19.3) | **−1.3 (−4.0 to +1.3)** |
+| 19,141 (try 1) | 1,197 | 57.7% | +15.7 (+10.7 to +20.3) | — |
+
+**Minimum viable dataset: about 9,400 rulings**, the smallest size whose accuracy is statistically indistinguishable
+from the full set. The behavior (beating the base model) already appears at about 2,400 rulings. Gains flatten after
+about 10,000; the later tries (2 and 3) added data and recipe changes for +1.6 and +0.4 more points. **Caveat:** epochs
+were held fixed, so smaller sets also had fewer optimizer steps; data size and training length are confounded. One seed
+per point.
+
 ## Closed-book (no retrieval)
 
 | Test | Base | Fine-tuned | Opus 5.5 | ATLAS paper |

@@ -71,6 +71,8 @@ runs in total. Recorded as an amendment in the protocol; criteria 1–2 are unch
       [`docs/evals/results-v2.md`](../evals/results-v2.md). **Hypothesis supported (+17.8, CI +13.6 to +22.0); Opus goal
       not met (−11.8, CI −16.0 to −7.6).**
 - [x] Follow-up outside the three tries: schedule-memory drills from try 3: dev `rag` 60.3% (+0.7, n.s.); closed-book dev 0% → 45.7%, ATLAS 0% → 12.5%.
+- [x] Data-efficiency curve (2026-11-02): 2,356 → 52.3%, 4,716 → 53.3%, 9,431 → 56.3%, 19,141 → 57.7% (dev); minimum ≈ 9,400.
+- [x] Deployed and submitted (2026-11-02): HF model + dataset, live Modal demo, demo video v2 (`docs/artifacts/2026-11-02-demo-video-v2.mp4`).
 
 ## Limits
 

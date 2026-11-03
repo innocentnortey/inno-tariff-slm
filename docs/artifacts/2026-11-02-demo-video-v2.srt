@@ -1,0 +1,411 @@
+1
+00:00:00,250 --> 00:00:02,787
+A customs broker has a new product to file.
+
+2
+00:00:02,787 --> 00:00:06,681
+Somewhere among about nineteen thousand eight hundred tariff lines
+
+3
+00:00:06,681 --> 00:00:08,333
+is the exact ten digit code.
+
+4
+00:00:08,333 --> 00:00:10,339
+A wrong code means the wrong duty.
+
+5
+00:00:10,339 --> 00:00:12,581
+I built this to help the broker find a
+
+6
+00:00:12,581 --> 00:00:14,646
+code worth reviewing before filing.
+
+7
+00:00:15,756 --> 00:00:17,800
+The user enters a product description.
+
+8
+00:00:17,800 --> 00:00:20,866
+My system searches earlier customs rulings and the tariff
+
+9
+00:00:20,866 --> 00:00:23,555
+schedule, then a small model uses that evidence to
+
+10
+00:00:23,555 --> 00:00:25,868
+choose a code. The user sees the answer and
+
+11
+00:00:25,868 --> 00:00:27,751
+the schedule lines found by search.
+
+12
+00:00:27,751 --> 00:00:29,257
+A person reviews the choice.
+
+13
+00:00:29,257 --> 00:00:30,548
+Saving time is the goal,
+
+14
+00:00:30,548 --> 00:00:31,731
+not a measured result.
+
+15
+00:00:32,891 --> 00:00:35,912
+I built search over twenty seven thousand eight hundred
+
+16
+00:00:35,912 --> 00:00:38,548
+forty one real customs rulings and the schedule,
+
+17
+00:00:38,548 --> 00:00:40,306
+using both keywords and meaning.
+
+18
+00:00:40,306 --> 00:00:43,271
+The rulings come from United States Customs and Border
+
+19
+00:00:43,271 --> 00:00:46,017
+Protection. Search returns twenty candidate lines.
+
+20
+00:00:46,017 --> 00:00:48,050
+I kept the agency's own descriptions,
+
+21
+00:00:48,050 --> 00:00:51,015
+removed answers, and used only government code labels.
+
+22
+00:00:51,015 --> 00:00:53,652
+I fine tuned a four billion parameter model with
+
+23
+00:00:53,652 --> 00:00:56,947
+small trainable adapters. It runs on one graphics processor.
+
+24
+00:00:57,828 --> 00:00:59,994
+I enter a men's jacket from a real test
+
+25
+00:00:59,994 --> 00:01:02,105
+ruling issued after all training data.
+
+26
+00:01:02,105 --> 00:01:04,105
+It is ninety five percent polyester,
+
+27
+00:01:04,105 --> 00:01:05,826
+five percent elastane, knitted,
+
+28
+00:01:05,826 --> 00:01:08,604
+brushed inside, with a zip front and banded cuffs.
+
+29
+00:01:08,604 --> 00:01:11,325
+I turn on the base comparison and click classify.
+
+30
+00:01:11,325 --> 00:01:13,603
+Both models get the same search evidence.
+
+31
+00:01:13,603 --> 00:01:15,602
+The fine tuned answer appears first,
+
+32
+00:01:15,602 --> 00:01:16,769
+in about two seconds,
+
+33
+00:01:16,769 --> 00:01:17,658
+at the top left.
+
+34
+00:01:17,658 --> 00:01:20,435
+Below it are the twenty tariff lines search found,
+
+35
+00:01:20,435 --> 00:01:22,046
+with the chosen line in bold.
+
+36
+00:01:22,046 --> 00:01:24,656
+The base model's card still says it is running,
+
+37
+00:01:24,656 --> 00:01:26,434
+using that same set of evidence.
+
+38
+00:01:26,434 --> 00:01:29,155
+While we wait, those construction details matter:
+
+39
+00:01:29,155 --> 00:01:30,433
+this jacket is knitted,
+
+40
+00:01:30,433 --> 00:01:32,210
+with no coated fabric described.
+
+41
+00:01:32,210 --> 00:01:34,210
+The base takes about thirty seconds.
+
+42
+00:01:34,210 --> 00:01:35,376
+Here are the results:
+
+43
+00:01:35,376 --> 00:01:38,154
+the tuned model gets the knitted men's jacket line
+
+44
+00:01:38,154 --> 00:01:39,320
+in about two seconds.
+
+45
+00:01:39,320 --> 00:01:41,764
+The base picks a coated fabric garment line,
+
+46
+00:01:41,764 --> 00:01:42,875
+which is wrong here.
+
+47
+00:01:46,025 --> 00:01:48,329
+I enter a second example I picked from the
+
+48
+00:01:48,329 --> 00:01:49,809
+test set, not a random one,
+
+49
+00:01:49,809 --> 00:01:51,784
+also issued after all training data.
+
+50
+00:01:51,784 --> 00:01:54,691
+This is an empty lipstick container made of injection
+
+51
+00:01:54,691 --> 00:01:58,201
+molded plastic. Its turning mechanism raises and lowers lipstick
+
+52
+00:01:58,201 --> 00:02:00,011
+and protects it during transport,
+
+53
+00:02:00,011 --> 00:02:02,698
+storage, and use. Both models get the same search
+
+54
+00:02:02,698 --> 00:02:04,014
+evidence. While we wait,
+
+55
+00:02:04,014 --> 00:02:06,428
+watch whether each answer fits the material.
+
+56
+00:02:06,428 --> 00:02:09,225
+Below the answer cards are the twenty tariff search
+
+57
+00:02:09,225 --> 00:02:11,693
+results. Look for the chosen line among them,
+
+58
+00:02:11,693 --> 00:02:14,654
+then compare it with the product description while the
+
+59
+00:02:14,654 --> 00:02:16,190
+base model is still running.
+
+60
+00:02:16,190 --> 00:02:19,042
+My tuned model is right about sixty percent overall.
+
+61
+00:02:19,042 --> 00:02:21,894
+Here, it picks the plastic packing and carrying line
+
+62
+00:02:21,894 --> 00:02:23,046
+in under two seconds.
+
+63
+00:02:23,046 --> 00:02:24,527
+After about thirty seconds,
+
+64
+00:02:24,527 --> 00:02:27,269
+the base picks a glass perfume or toilet container
+
+65
+00:02:27,269 --> 00:02:29,353
+line, despite the plastic description.
+
+66
+00:02:32,231 --> 00:02:33,960
+On five hundred fresh rulings,
+
+67
+00:02:33,960 --> 00:02:35,862
+I scored exact ten digit matches.
+
+68
+00:02:35,862 --> 00:02:39,320
+These rulings span August twenty twenty five through October
+
+69
+00:02:39,320 --> 00:02:42,779
+twenty twenty six. Search alone scored thirty eight percent.
+
+70
+00:02:42,779 --> 00:02:44,738
+The base, Qwen three four billion,
+
+71
+00:02:44,738 --> 00:02:46,179
+scored forty two percent.
+
+72
+00:02:46,179 --> 00:02:49,003
+Fine tuning raised that to fifty nine point eight
+
+73
+00:02:49,003 --> 00:02:52,116
+percent. Claude Opus five point five was more accurate
+
+74
+00:02:52,116 --> 00:02:54,018
+at seventy one point six percent.
+
+75
+00:02:54,018 --> 00:02:55,170
+On an H one hundred,
+
+76
+00:02:55,170 --> 00:02:57,879
+my model took about zero point nine seconds per
+
+77
+00:02:57,879 --> 00:03:00,185
+request versus nine point nine for Opus.
+
+78
+00:03:00,185 --> 00:03:03,585
+In bulk, classification cost was about one hundred fiftieth
+
+79
+00:03:03,585 --> 00:03:06,179
+of Opus, excluding idle capacity and hosting.
+
+80
+00:03:07,039 --> 00:03:09,576
+The hardest part was making the test honest.
+
+81
+00:03:09,576 --> 00:03:12,631
+My first version always included the right code among
+
+82
+00:03:12,631 --> 00:03:15,744
+eight choices. I rebuilt it with fresh rulings fetched
+
+83
+00:03:15,744 --> 00:03:18,858
+individually, removed sentences that revealed answers,
+
+84
+00:03:18,858 --> 00:03:21,683
+and froze the test rules before scoring any tuned
+
+85
+00:03:21,683 --> 00:03:24,623
+model. Search now misses the code in twenty percent
+
+86
+00:03:24,623 --> 00:03:25,718
+of cases. On those,
+
+87
+00:03:25,718 --> 00:03:28,197
+Opus gets thirty percent right from memory;
+
+88
+00:03:28,197 --> 00:03:29,696
+my model gets one percent.
+
+89
+00:03:29,696 --> 00:03:32,867
+Memory drills raised recall without search from zero to
+
+90
+00:03:32,867 --> 00:03:35,058
+forty six percent on development data,
+
+91
+00:03:35,058 --> 00:03:36,787
+but barely helped with search.
+
+92
+00:03:36,787 --> 00:03:39,209
+That follow up was not scored on the final
+
+93
+00:03:39,209 --> 00:03:41,861
+test; the reported checkpoint stayed the same.
+
+94
+00:03:41,861 --> 00:03:45,493
+Training on four hundred eighty eight verified explanations did
+
+95
+00:03:45,493 --> 00:03:48,836
+not help either. Those experiments showed where the limits
+
+96
+00:03:48,836 --> 00:03:49,067
+are.
+
+97
+00:03:49,927 --> 00:03:52,877
+I published the model and dataset on Hugging Face,
+
+98
+00:03:52,877 --> 00:03:55,296
+alongside a live demo and results report.
+
+99
+00:03:55,296 --> 00:03:58,009
+Fine tuning took my small model from forty two
+
+100
+00:03:58,009 --> 00:03:59,366
+to about sixty percent.
+
+101
+00:03:59,366 --> 00:04:01,018
+On the faster test hardware,
+
+102
+00:04:01,018 --> 00:04:03,496
+it is about eleven times faster than Opus,
+
+103
+00:04:03,496 --> 00:04:05,856
+but roughly twelve points less accurate.

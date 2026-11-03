@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Architecture</title><style>
+body{margin:0;width:1600px;height:820px;background:#0f1418;color:#e8eef0;font:22px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;justify-content:center;padding:0 90px;box-sizing:border-box}
+#__demo_cursor{display:none!important}.k{color:#5fc2b6;letter-spacing:.08em;text-transform:uppercase;font-size:17px}h1{font-size:44px;margin:6px 0 30px}
+.flow{display:flex;gap:18px;align-items:stretch}.box{flex:1;border:1px solid #2a3940;border-radius:14px;padding:22px;background:#152027}.box.hi{border-color:#5fc2b6;background:#11272a}
+.box b{display:block;font-size:21px;margin-bottom:8px;color:#fff}.box p{margin:0;font-size:19px;color:#cfe3e0}.arrow{align-self:center;color:#5fc2b6;font-size:30px}
+.need{margin-bottom:26px;font-size:24px;color:#cfe3e0}.need b{color:#fff}
+table{border-collapse:collapse;width:100%;font-size:24px}td,th{padding:12px 16px;border-bottom:1px solid #2a3940;text-align:left}th{color:#8fa9ad;font-size:17px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+td.n{text-align:right;font-variant-numeric:tabular-nums}tr.hi td{color:#5fc2b6;font-weight:700}.note{margin-top:22px;font-size:19px;color:#9fb6b9}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px}.two .box p{font-size:20px}</style></head><body><div class="k">What I built</div><h1>Real rulings in, one checked answer out</h1>
+<div class="flow"><div class="box"><b>Data</b><p>27,841 CBP rulings. Each product described in CBP's own words, with every sentence that names the code removed. Labels only from CBP and the schedule.</p></div>
+<div class="box"><b>Search</b><p>Keyword plus meaning-based search over earlier rulings and the full schedule. Only rulings issued <i>before</i> the product are visible.</p></div>
+<div class="box hi"><b>Model</b><p>Qwen3-4B fine-tuned with LoRA on Modal, three training runs. Runs on one GPU and answers in about a second.</p></div>
+<div class="box"><b>Honest test</b><p>500 rulings CBP issued Aug 2025 – Oct 2026, after all training data. Protocol frozen before any tuned model was scored.</p></div></div></body></html>

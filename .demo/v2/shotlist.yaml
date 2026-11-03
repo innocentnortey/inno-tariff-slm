@@ -1,0 +1,83 @@
+project: "Tariff Classifier SLM v2"
+tagline: "A fine-tuned 4B model that picks the exact 10-digit tariff code from retrieved evidence"
+url: https://youngjr1232--tariff-classifier-demo-web.modal.run/
+auth: {storage_state: .demo/auth.json}
+viewport: {width: 1600, height: 820}
+show_requirement: false
+caption_band:
+  height: 80
+  background: "#0f1418"
+  label: "Live demo · fine-tuned Qwen3-4B vs its base model · same search results · real CBP rulings from the final test"
+voice:
+  model: eleven_multilingual_v2
+  speed: 1.05
+  stability: 0.45
+  similarity_boost: 0.8
+  style: 0.2
+card_theme: {background: "#0f1418", accent: "#5fc2b6"}
+
+scenes:
+  - id: hook
+    type: card
+    title: "The exact 10-digit tariff code, from real evidence"
+    subtitle: "Gauntlet AI · Week 7 · Train Your Own Small Language Model · version 2"
+    lines: ["About 19,800 possible lines", "The one you pick sets the duty"]
+    narration: "A customs broker has a new product to file. Somewhere among about nineteen thousand eight hundred tariff lines is the exact ten digit code. A wrong code means the wrong duty. I built this to help the broker find a code worth reviewing before filing."
+
+  - id: overview
+    type: card
+    html_file: .demo/cards/v2/overview.html
+    narration: "The user enters a product description. My system searches earlier customs rulings and the tariff schedule, then a small model uses that evidence to choose a code. The user sees the answer and the schedule lines found by search. A person reviews the choice. Saving time is the goal, not a measured result."
+
+  - id: architecture
+    type: card
+    html_file: .demo/cards/v2/architecture.html
+    narration: "I built search over twenty seven thousand eight hundred forty one real customs rulings and the schedule, using both keywords and meaning. The rulings come from United States Customs and Border Protection. Search returns twenty candidate lines. I kept the agency's own descriptions, removed answers, and used only government code labels. I fine tuned a four billion parameter model with small trainable adapters. It runs on one graphics processor."
+
+  - id: demo_prepared
+    evidence: ['train/serve_openset.py', 'data/benchmark/test.jsonl', 'runs/openset-modal/final-test-try3/predictions-test-rag.jsonl']
+    before:
+      - goto: /
+      - eval: "document.getElementById('base').checked = false; document.getElementById('out').innerHTML = ''; document.getElementById('product').value = ''; document.getElementById('description').value = 'Article 8401216545 is a men\\'s jacket constructed from 95% polyester, and 5% elastane knit fabric that is brushed on the inner surface. The partially lined garment features a stand-up collar, a full-frontal opening secured with a zipper closure that extends to the top of the collar, long sleeves with banded cuffs, a patch pocket on the left chest, zippered pockets below the waist, and a banded hemmed bottom.'"
+    narration: "I enter a men's jacket from a real test ruling issued after all training data. It is ninety five percent polyester, five percent elastane, knitted, brushed inside, with a zip front and banded cuffs. I turn on the base comparison and click classify. Both models get the same search evidence. The fine tuned answer appears first, in about two seconds, at the top left. Below it are the twenty tariff lines search found, with the chosen line in bold. The base model's card still says it is running, using that same set of evidence. While we wait, those construction details matter: this jacket is knitted, with no coated fabric described. The base takes about thirty seconds. Here are the results: the tuned model gets the knitted men's jacket line in about two seconds. The base picks a coated fabric garment line, which is wrong here."
+    actions:
+      - type: {selector: '#product', text: "a men's jacket", delay_ms: 40}
+      - click: '#base'
+      - click: '#go'
+      - wait_for: '#tunedcard'
+      - at: 36
+      - highlight: {selector: '#tunedcard', seconds: 2.5}
+      - wait_for: '#basecard.done'
+      - highlight: {selector: '#basecard', seconds: 2.5}
+
+  - id: demo_grader
+    evidence: ['train/serve_openset.py', 'data/benchmark/test.jsonl', 'runs/openset-modal/final-test-try3/predictions-test-rag.jsonl']
+    before:
+      - goto: /
+      - eval: "document.getElementById('base').checked = true; document.getElementById('out').innerHTML = ''; document.getElementById('product').value = ''; document.getElementById('description').value = 'The product under consideration is described as a lipstick container, model number LPNR001, constructed from an injection-molded plastic. The container will be imported empty. It features a rotational mechanism that raises and lowers the lipstick mass, designed to protect the contents from external impact and contamination, and to facilitate its transport, storage, and use.'"
+    narration: "I enter a second example I picked from the test set, not a random one, also issued after all training data. This is an empty lipstick container made of injection molded plastic. Its turning mechanism raises and lowers lipstick and protects it during transport, storage, and use. Both models get the same search evidence. While we wait, watch whether each answer fits the material. Below the answer cards are the twenty tariff search results. Look for the chosen line among them, then compare it with the product description while the base model is still running. My tuned model is right about sixty percent overall. Here, it picks the plastic packing and carrying line in under two seconds. After about thirty seconds, the base picks a glass perfume or toilet container line, despite the plastic description."
+    actions:
+      - type: {selector: '#product', text: "a lipstick container", delay_ms: 40}
+      - click: '#go'
+      - wait_for: '#tunedcard'
+      - at: 31
+      - highlight: {selector: '#tunedcard', seconds: 2.5}
+      - wait_for: '#basecard.done'
+      - highlight: {selector: '#basecard', seconds: 2.5}
+
+  - id: results
+    type: card
+    html_file: .demo/cards/v2/results.html
+    narration: "On five hundred fresh rulings, I scored exact ten digit matches. These rulings span August twenty twenty five through October twenty twenty six. Search alone scored thirty eight percent. The base, Qwen three four billion, scored forty two percent. Fine tuning raised that to fifty nine point eight percent. Claude Opus five point five was more accurate at seventy one point six percent. On an H one hundred, my model took about zero point nine seconds per request versus nine point nine for Opus. In bulk, classification cost was about one hundred fiftieth of Opus, excluding idle capacity and hosting."
+
+  - id: challenges
+    type: card
+    html_file: .demo/cards/v2/challenges.html
+    narration: "The hardest part was making the test honest. My first version always included the right code among eight choices. I rebuilt it with fresh rulings fetched individually, removed sentences that revealed answers, and froze the test rules before scoring any tuned model. Search now misses the code in twenty percent of cases. On those, Opus gets thirty percent right from memory; my model gets one percent. Memory drills raised recall without search from zero to forty six percent on development data, but barely helped with search. That follow up was not scored on the final test; the reported checkpoint stayed the same. Training on four hundred eighty eight verified explanations did not help either. Those experiments showed where the limits are."
+
+  - id: outro
+    type: card
+    title: "Faster and cheaper, honestly measured"
+    subtitle: "huggingface.co/youngjr1232/tariff-classifier-qwen3-4b · dataset: tariff-hts-openset-v2"
+    lines: ["Base 42.0% → fine-tuned 59.8% on 500 fresh CBP rulings", "Claude Opus 5.5: 71.6% · about 11× slower, ~150× the cost"]
+    narration: "I published the model and dataset on Hugging Face, alongside a live demo and results report. Fine tuning took my small model from forty two to about sixty percent. On the faster test hardware, it is about eleven times faster than Opus, but roughly twelve points less accurate."

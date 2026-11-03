@@ -55,4 +55,5 @@ Reported numbers always use the frozen files above; a rebuild is a new artifact.
 ## Terms
 
 CBP rulings are U.S. government works. The HF corpus copy has no stated licence, and the ATLAS public copy is
-Apache-2.0. The derived files are not published from this repo; publishing them is Innocent's call.
+Apache-2.0. The derived files are kept out of git and were published on Innocent's instruction (2026-11-02) as
+https://huggingface.co/datasets/youngjr1232/tariff-hts-openset-v2 (commit `4797cce5`), with a card and checksums.

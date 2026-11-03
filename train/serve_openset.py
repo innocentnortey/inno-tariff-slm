@@ -130,18 +130,25 @@ base model</label><button id="go" type="submit">Classify</button><span id="statu
 <script>
 const f=document.getElementById('f'),out=document.getElementById('out'),st=document.getElementById('status'),
 go=document.getElementById('go');
+const kf=document.getElementById('key');try{kf.value=localStorage.getItem('demoKey')||''}catch(e){}
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-f.addEventListener('submit',async e=>{e.preventDefault();go.disabled=true;st.textContent='Classifying… the first request after idle loads the model (about 2 minutes).';
-try{const r=await fetch('api/classify',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
-key:document.getElementById('key').value,product:document.getElementById('product').value,
-description:document.getElementById('description').value,compare_base:document.getElementById('base').checked})});
-const d=await r.json();if(!r.ok){throw new Error(d.detail||r.statusText)}st.textContent='';
-const card=(t,a,c)=>`<div class="card ${c}"><div class="muted">${t}</div><div class="code">${esc(a.code||'no code')}</div>
+f.addEventListener('submit',async e=>{e.preventDefault();go.disabled=true;out.innerHTML='';
+st.textContent='Classifying… the first request after idle loads the model (about 3 minutes).';
+const body=x=>JSON.stringify(Object.assign({key:kf.value,product:document.getElementById('product').value,
+description:document.getElementById('description').value},x));
+const post=async x=>{const r=await fetch('api/classify',{method:'POST',headers:{'content-type':'application/json'},
+body:body(x)});const d=await r.json();if(!r.ok){throw new Error(d.detail||r.statusText)}return d};
+const card=(t,a,c,id)=>`<div class="card ${c}" id="${id}"><div class="muted">${t}</div><div class="code">${esc(a.code||'no code')}</div>
 <div class="muted">${a.seconds}s · ${a.in_candidates?'in the search results':'not in the search results'}</div></div>`;
-let h='<div class="grid">'+card('Fine-tuned',d.tuned,'t')+(d.base?card('Base model',d.base,''):'')+'</div>';
+const wantBase=document.getElementById('base').checked;
+try{const d=await post({compare_base:false});st.textContent='';try{localStorage.setItem('demoKey',kf.value)}catch(e){}
+let h='<div class="grid">'+card('Fine-tuned',d.tuned,'t','tunedcard')+(wantBase?`<div class="card" id="basecard"><div class="muted">Base model</div>
+<div class="code">…</div><div class="muted">running on the same evidence</div></div>`:'')+'</div>';
 h+=`<p class="muted">Search ${d.retrieval_seconds}s · ${esc(d.device)}</p><div class="card"><div class="muted">HTSUS lines
 found by search</div><table>${d.candidates.map(c=>`<tr class="${c.code===d.tuned.code?'hit':''}"><td class="c">
-${esc(c.code)}</td><td>${esc(c.text)}</td></tr>`).join('')}</table></div>`;out.innerHTML=h}
+${esc(c.code)}</td><td>${esc(c.text)}</td></tr>`).join('')}</table></div>`;out.innerHTML=h;
+if(wantBase){const b=await post({only_base:true});const el=document.getElementById('basecard');
+el.outerHTML=card('Base model',b.base,'done','basecard')}}
 catch(err){st.textContent='Could not classify: '+err.message+'. Check the key and try again.'}finally{go.disabled=false}});
 </script></body></html>"""
 
@@ -205,10 +212,12 @@ class Demo:
     def classify(self, product: str, description: str, compare_base: bool = True) -> dict:
         return self._classify(product, description, compare_base)
 
-    def _classify(self, product: str, description: str, compare_base: bool = True) -> dict:
+    def _classify(self, product: str, description: str, compare_base: bool = True, only_base: bool = False) -> dict:
         _path()
         from tariff_slm.openset.prompts import dotted
         item, rsec = self._item(product.strip(), description.strip())
+        if only_base:  # the page asks for the base answer separately, so the tuned answer shows as soon as it is ready
+            return {"base": self._answer(item, False), "retrieval_seconds": round(rsec, 3), "device": self.device}
         out = {"tuned": self._answer(item, True), "retrieval_seconds": round(rsec, 3), "device": self.device,
                "candidates": [{"code": dotted(c["code"]), "text": c["text"]} for c in item["candidates"]],
                "precedents": [{"ruling_id": p["ruling_id"], "code": dotted(p["code"]), "product": p["product"]}
@@ -254,6 +263,7 @@ class Demo:
             product: str = Field(min_length=1, max_length=300)
             description: str = Field(min_length=10, max_length=4000)
             compare_base: bool = True
+            only_base: bool = False
 
         @api.get("/", response_class=HTMLResponse)
         def page():
@@ -268,7 +278,7 @@ class Demo:
                 raise HTTPException(status_code=422, detail=f"invalid fields: {', '.join(fields)}") from None
             if not hmac.compare_digest(req.key.encode(), os.environ["DEMO_KEY"].encode()):
                 raise HTTPException(status_code=401, detail="wrong demo key")
-            return self._classify(req.product, req.description, req.compare_base)
+            return self._classify(req.product, req.description, req.compare_base, req.only_base)
 
         return api
 

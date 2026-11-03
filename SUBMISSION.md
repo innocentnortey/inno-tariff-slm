@@ -16,8 +16,8 @@ open-set benchmark (any of ~19,800 HTSUS lines; fresh CBP rulings; no answer in 
 | Eval harness + results, base vs tuned | ☑ | Final test 500: base 42.0% → tuned 59.8% (+17.8, CI +13.6 to +22.0); Opus 71.6%. `scripts/eval_openset.py`, `train/modal_openset.py`, `scripts/compare_runs.py` |
 | Latency and cost | ☑ | Single request: 0.89 s (H100) / 1.74 s (A10G) vs Opus 9.9 s; `runs/latency/` |
 | Brainlift | ☑ | [`docs/delivery/brainlift-v2.md`](docs/delivery/brainlift-v2.md) |
-| Data-efficiency curve (≥4 checkpoints) with justified minimum N | ☐ | Not run for version 2 |
-| 3–5 min demo video incl. a live grader-supplied prompt (base vs tuned) | ☐ | Demo supports it; video not recorded for version 2 |
+| Data-efficiency curve (≥4 checkpoints) with justified minimum N | ☑ | 2,356 → 52.3%, 4,716 → 53.3%, 9,431 → 56.3%, 19,141 → 57.7% (base 42.0%); minimum viable N ≈ 9,400 (−1.3 vs full, CI −4.0 to +1.3). [`results-v2.md`](docs/evals/results-v2.md#data-efficiency-curve-dev-300-items-rag-2026-11-02); caveat: steps scale with N |
+| 3–5 min demo video, base vs tuned live | ◐ | `docs/artifacts/2026-11-02-demo-video-v2.mp4` (4:07, 183 wpm, captions `.srt`): two real fresh CBP rulings run live on the deployed demo, base vs tuned on the same evidence. Narration by Codex (`docs/delivery/2026-11-02-demo-narration-v2.md`); source `.demo/v2/`. **Not grader-supplied:** both examples were picked from the test set (said so in the video); a grader can type their own product into the live demo during review |
 | Staff held-out set | ☐ | Not received |
 
 ## Version 1 — eight-candidate selection (2026-11-01, historical)

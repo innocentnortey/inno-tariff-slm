@@ -1,0 +1,83 @@
+project: "Tariff Classifier SLM v2"
+tagline: "A fine-tuned 4B model that picks the exact 10-digit tariff code from retrieved evidence"
+url: https://youngjr1232--tariff-classifier-demo-web.modal.run/
+auth: {storage_state: .demo/auth.json}
+viewport: {width: 1600, height: 820}
+show_requirement: false
+caption_band:
+  height: 80
+  background: "#0f1418"
+  label: "Live demo · fine-tuned Qwen3-4B vs its base model · same search results · real CBP rulings from the final test"
+voice:
+  model: eleven_multilingual_v2
+  speed: 1.05
+  stability: 0.45
+  similarity_boost: 0.8
+  style: 0.2
+card_theme: {background: "#0f1418", accent: "#5fc2b6"}
+
+scenes:
+  - id: hook
+    type: card
+    title: "The exact 10-digit tariff code, from real evidence"
+    subtitle: "Gauntlet AI · Week 7 · Train Your Own Small Language Model · version 2"
+    lines: ["About 19,800 possible lines", "The one you pick sets the duty"]
+    narration: "{{hook}}"
+
+  - id: overview
+    type: card
+    html_file: .demo/cards/v2/overview.html
+    narration: "{{overview}}"
+
+  - id: architecture
+    type: card
+    html_file: .demo/cards/v2/architecture.html
+    narration: "{{architecture}}"
+
+  - id: demo_prepared
+    evidence: ['train/serve_openset.py', 'data/benchmark/test.jsonl', 'runs/openset-modal/final-test-try3/predictions-test-rag.jsonl']
+    before:
+      - goto: /
+      - eval: "document.getElementById('base').checked = false; document.getElementById('out').innerHTML = ''; document.getElementById('product').value = ''; document.getElementById('description').value = 'Article 8401216545 is a men\\'s jacket constructed from 95% polyester, and 5% elastane knit fabric that is brushed on the inner surface. The partially lined garment features a stand-up collar, a full-frontal opening secured with a zipper closure that extends to the top of the collar, long sleeves with banded cuffs, a patch pocket on the left chest, zippered pockets below the waist, and a banded hemmed bottom.'"
+    narration: "{{demo_prepared}}"
+    actions:
+      - type: {selector: '#product', text: "a men's jacket", delay_ms: 40}
+      - click: '#base'
+      - click: '#go'
+      - wait_for: '#tunedcard'
+      - at: 36
+      - highlight: {selector: '#tunedcard', seconds: 2.5}
+      - wait_for: '#basecard.done'
+      - highlight: {selector: '#basecard', seconds: 2.5}
+
+  - id: demo_grader
+    evidence: ['train/serve_openset.py', 'data/benchmark/test.jsonl', 'runs/openset-modal/final-test-try3/predictions-test-rag.jsonl']
+    before:
+      - goto: /
+      - eval: "document.getElementById('base').checked = true; document.getElementById('out').innerHTML = ''; document.getElementById('product').value = ''; document.getElementById('description').value = {{grader_description_js}}"
+    narration: "{{demo_grader}}"
+    actions:
+      - type: {selector: '#product', text: "{{grader_product}}", delay_ms: 40}
+      - click: '#go'
+      - wait_for: '#tunedcard'
+      - at: 31
+      - highlight: {selector: '#tunedcard', seconds: 2.5}
+      - wait_for: '#basecard.done'
+      - highlight: {selector: '#basecard', seconds: 2.5}
+
+  - id: results
+    type: card
+    html_file: .demo/cards/v2/results.html
+    narration: "{{results}}"
+
+  - id: challenges
+    type: card
+    html_file: .demo/cards/v2/challenges.html
+    narration: "{{challenges}}"
+
+  - id: outro
+    type: card
+    title: "Faster and cheaper, honestly measured"
+    subtitle: "huggingface.co/youngjr1232/tariff-classifier-qwen3-4b · dataset: tariff-hts-openset-v2"
+    lines: ["Base 42.0% → fine-tuned 59.8% on 500 fresh CBP rulings", "Claude Opus 5.5: 71.6% · about 11× slower, ~150× the cost"]
+    narration: "{{outro}}"

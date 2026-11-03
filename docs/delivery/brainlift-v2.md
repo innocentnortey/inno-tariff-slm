@@ -27,6 +27,11 @@ per request on an H100 (about 11× faster) and about 1/150 of the cost per class
 workflow, a fast cheap first pass with the evidence shown is the use case.
 
 **What would change my mind / next.** The gap lives in rare codes and in retrieval misses (20% of test items). Better
-retrieval and many more examples per rare code are the levers; a data-efficiency curve for this version is not yet run.
+retrieval and many more examples per rare code are the levers.
+
+**Minimum viable dataset.** The data-efficiency curve (same recipe, nested subsets, dev) gives 2,356 → 52.3%,
+4,716 → 53.3%, 9,431 → 56.3%, 19,141 → 57.7% (base 42.0%). The behavior appears by about 2,400 rulings; about 9,400 is
+the smallest size statistically indistinguishable from the full set, so I state ~9,400 as the minimum viable size.
+Training length grew with size (one epoch each), so the two effects are confounded.
 
 Evidence: `docs/evals/results-v2.md`, protocol `docs/evals/benchmark-protocol.md`, data `docs/data/benchmark-v2.md`.
